@@ -1,24 +1,118 @@
 /**
- * Service de génération d'images — OpenAI DALL-E 3 uniquement
- * Gère les 5 vues en parallèle via Promise.allSettled
+ * Service de génération d'images — Flux Pro (primaire) + DALL-E 3 (fallback)
+ * Auto-routing via configService.getBestEngine()
  */
 
 import { configService } from './configService'
 
 const DALLE_COST_USD = 0.080
+const FLUX_COST_USD = 0.055
+const POLL_INTERVAL_MS = 2000
+const TIMEOUT_MS = 120000
 
 /**
- * Génère une image via DALL-E 3
- * @param {string} masterPrompt - Prompt complet
- * @param {object} options - { size, quality }
- * @returns {Promise<{ imageUrl, revisedPrompt, cost_usd }>}
+ * Génère une image — moteur choisi automatiquement
+ * @param {string} masterPrompt - Prompt DALL-E
+ * @param {object} options - { size, quality, fluxPrompt }
+ * @returns {Promise<{ imageUrl, revisedPrompt, cost_usd, engine }>}
  */
 export async function generateShoeImage(masterPrompt, options = {}) {
-  const apiKey = configService.getOpenAIKey()
-  if (!apiKey) {
-    throw new Error('Clé API OpenAI non configurée. Ajoutez-la dans les paramètres.')
+  const engine = configService.getBestEngine()
+
+  if (!engine) {
+    throw new Error('Aucune clé API image configurée. Ajoutez OpenAI ou Replicate dans les paramètres.')
   }
 
+  // Flux Pro primaire avec fallback DALL-E 3
+  if (engine === 'flux_pro') {
+    try {
+      return await generateWithFlux(options.fluxPrompt || masterPrompt, options)
+    } catch {
+      // Fallback silencieux vers DALL-E 3
+      const openaiKey = configService.getOpenAIKey()
+      if (openaiKey) {
+        return await generateWithDalle(masterPrompt, options)
+      }
+      throw new Error('Flux Pro a échoué et aucune clé OpenAI disponible en fallback.')
+    }
+  }
+
+  return await generateWithDalle(masterPrompt, options)
+}
+
+/**
+ * Génère via Flux Pro (Replicate) avec polling
+ */
+async function generateWithFlux(prompt, options = {}) {
+  const apiKey = configService.getReplicateKey()
+  if (!apiKey) throw new Error('Clé Replicate non configurée')
+
+  const start = Date.now()
+
+  const response = await fetch(
+    'https://api.replicate.com/v1/models/black-forest-labs/flux-pro/predictions',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Token ${apiKey}`,
+      },
+      body: JSON.stringify({
+        input: {
+          prompt,
+          width: 1344,
+          height: 768,
+          steps: 25,
+        },
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error(`Replicate API: ${response.status}`)
+  }
+
+  const prediction = await response.json()
+  const pollUrl = prediction.urls?.get || `https://api.replicate.com/v1/predictions/${prediction.id}`
+
+  const deadline = start + TIMEOUT_MS
+  while (Date.now() < deadline) {
+    await sleep(POLL_INTERVAL_MS)
+
+    const pollResponse = await fetch(pollUrl, {
+      headers: { Authorization: `Token ${apiKey}` },
+    })
+    if (!pollResponse.ok) continue
+
+    const status = await pollResponse.json()
+
+    if (status.status === 'succeeded') {
+      const imageUrl = Array.isArray(status.output) ? status.output[0] : status.output
+      return {
+        imageUrl,
+        revisedPrompt: null,
+        cost_usd: FLUX_COST_USD,
+        engine: 'flux_pro',
+        generation_time_ms: Date.now() - start,
+      }
+    }
+
+    if (status.status === 'failed') {
+      throw new Error(status.error || 'Flux Pro generation failed')
+    }
+  }
+
+  throw new Error('Flux Pro generation timeout (120s)')
+}
+
+/**
+ * Génère via DALL-E 3 (OpenAI)
+ */
+async function generateWithDalle(prompt, options = {}) {
+  const apiKey = configService.getOpenAIKey()
+  if (!apiKey) throw new Error('Clé OpenAI non configurée')
+
+  const start = Date.now()
   const size = options.size || '1792x1024'
   const quality = options.quality || 'hd'
 
@@ -30,7 +124,7 @@ export async function generateShoeImage(masterPrompt, options = {}) {
     },
     body: JSON.stringify({
       model: 'dall-e-3',
-      prompt: masterPrompt,
+      prompt,
       size,
       quality,
       n: 1,
@@ -48,14 +142,17 @@ export async function generateShoeImage(masterPrompt, options = {}) {
 
   if (!imageUrl) throw new Error('No image URL in response')
 
-  return { imageUrl, revisedPrompt, cost_usd: DALLE_COST_USD }
+  return {
+    imageUrl,
+    revisedPrompt,
+    cost_usd: DALLE_COST_USD,
+    engine: 'dalle3',
+    generation_time_ms: Date.now() - start,
+  }
 }
 
 /**
- * Génère les 5 vues en parallèle via DALL-E 3
- * @param {Array<ViewPrompt>} viewPrompts - 5 ViewPrompts depuis buildViewPrompts
- * @param {object} options - { onResult }
- * @returns {Promise<Array<{ view_id, imageUrl, cost_usd, error }>>}
+ * Génère les 5 vues en parallèle — moteur auto
  */
 export async function generateAllViews(viewPrompts, options = {}) {
   const onResult = options.onResult || (() => {})
@@ -77,30 +174,29 @@ export async function generateAllViews(viewPrompts, options = {}) {
       status: 'error',
       generation_time_ms: 0,
       cost_usd: 0,
+      engine: configService.getBestEngine() || 'unknown',
       error: s.reason?.message || 'Unknown error',
     }
   })
 }
 
-/**
- * Génère une seule vue
- */
 async function generateSingleView(viewPrompt, options = {}) {
   const start = Date.now()
 
   try {
-    const { imageUrl, revisedPrompt, cost_usd } = await generateShoeImage(
+    const result = await generateShoeImage(
       viewPrompt.dalle_optimized,
-      options
+      { ...options, fluxPrompt: viewPrompt.flux_optimized }
     )
 
     return {
       view_id: viewPrompt.view_id,
-      imageUrl,
-      revisedPrompt,
+      imageUrl: result.imageUrl,
+      revisedPrompt: result.revisedPrompt,
       status: 'success',
-      generation_time_ms: Date.now() - start,
-      cost_usd,
+      generation_time_ms: result.generation_time_ms || (Date.now() - start),
+      cost_usd: result.cost_usd,
+      engine: result.engine,
       error: null,
     }
   } catch (err) {
@@ -110,7 +206,12 @@ async function generateSingleView(viewPrompt, options = {}) {
       status: 'error',
       generation_time_ms: Date.now() - start,
       cost_usd: 0,
+      engine: configService.getBestEngine() || 'unknown',
       error: err.message,
     }
   }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
