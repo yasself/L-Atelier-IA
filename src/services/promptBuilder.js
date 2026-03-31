@@ -4,7 +4,7 @@
  */
 
 import segments from '../data/segments'
-import { montages, materiaux } from '../data/specs_engine'
+import { montages, materiaux, INTENTION_MAP } from '../data/specs_engine'
 
 // --- Descriptions physiques des matériaux ---
 const MATERIAU_TEXTURE = {
@@ -117,8 +117,12 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
   const couleur = config.couleur || ''
   const finitions = config.finitions || ''
 
+  // Lookup prompt_descriptor from INTENTION_MAP
+  const intentionMatch = INTENTION_MAP[type] || data.intention
+  const promptDescriptor = intentionMatch?.prompt_descriptor || null
+
   // Build the 6 layers
-  const layer1 = buildSilhouetteLayer(type, segment)
+  const layer1 = buildSilhouetteLayer(type, segment, promptDescriptor)
   const layer2 = buildMaterialLayer(materiau, couleur)
   const layer3 = buildConstructionLayer(montage)
   const layer6 = QUALITY_LAYER
@@ -147,8 +151,12 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
 
 // --- Layer builders ---
 
-function buildSilhouetteLayer(type, segment) {
+function buildSilhouetteLayer(type, segment, promptDescriptor) {
   const segLabel = SEGMENT_EN[segment] || segment
+  // Use precise prompt_descriptor if available, otherwise generic
+  if (promptDescriptor) {
+    return `${promptDescriptor}, ${segLabel} footwear`
+  }
   const shoeType = type || 'shoe'
   return `${shoeType} shoe, ${segLabel} footwear`
 }
