@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Shield, Layers, CheckCircle2, XCircle, FileText, Ruler, Footprints, Wrench, Sparkles, Heart } from 'lucide-react'
 import { getSegment } from '../data/segments'
 import { getLabelFr } from '../data/specs_engine'
-import { exportAsJSON } from '../services/exportService'
+import { exportAsJSON, exportTechnicalPDF } from '../services/exportService'
 import useAtelierStore from '../store/useAtelierStore'
 
 function generateRefNumber() {
@@ -206,12 +206,27 @@ export default function TechnicalCard({ segment, config, enrichment }) {
           </div>
         )}
 
-        {/* Export button */}
-        <div className="pt-2 border-t border-gray-100">
+        {/* Export buttons */}
+        <div className="pt-2 border-t border-gray-100 flex gap-2">
           <button
             onClick={() => {
               const store = useAtelierStore.getState()
-              const mainImage = store.renderResults?.find(r => r.view_id === 'three_quarter' && r.status === 'success')
+              exportTechnicalPDF({
+                specs: enrichment,
+                config: { ...config, segment },
+                renderResults: store.renderResults || [],
+                viewPrompts: store.currentPrompt?.viewPrompts || [],
+                reference: refNumber,
+              })
+            }}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-or text-noir text-sm font-medium rounded-lg hover:bg-or-light transition-colors"
+          >
+            <FileText size={14} />
+            Exporter PDF
+          </button>
+          <button
+            onClick={() => {
+              const store = useAtelierStore.getState()
               exportAsJSON({
                 specs: enrichment,
                 config: { ...config, segment },
@@ -219,10 +234,9 @@ export default function TechnicalCard({ segment, config, enrichment }) {
                 viewPrompts: store.currentPrompt?.viewPrompts || [],
               })
             }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-or/30 text-sm rounded-lg text-or hover:bg-or/10 transition-colors"
+            className="px-4 py-2.5 border border-border text-sm rounded-lg text-gray-500 hover:text-noir hover:bg-blanc-warm transition-colors"
           >
-            <FileText size={14} />
-            Exporter JSON
+            JSON
           </button>
         </div>
       </div>
