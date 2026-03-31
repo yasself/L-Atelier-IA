@@ -197,10 +197,45 @@ const segments = {
 }
 
 export const TYPES_CHAUSSURES = {
-  bebe: ['Chausson', 'Bottillon', 'Sandale', 'Basket souple'],
-  enfant: ['Basket', 'Sandale', 'Bottine', 'Derby', 'Ballerine', 'Botte'],
-  femme: ['Escarpin', 'Bottine', 'Sandale', 'Sneaker', 'Derby', 'Mocassin', 'Ballerine', 'Botte', 'Mule'],
-  homme: ['Derby', 'Richelieu', 'Mocassin', 'Sneaker', 'Bottine', 'Chelsea', 'Monk', 'Botte'],
+  bebe: ['Chausson', 'Bottillon', 'Sandale', 'Basket souple', 'Babouche'],
+  enfant: ['Basket', 'Sandale', 'Bottine', 'Derby', 'Ballerine', 'Botte', 'Sneaker', 'Mary Jane', 'Running'],
+  femme: ['Escarpin', 'Bottine', 'Sandale', 'Sneaker', 'Derby', 'Mocassin', 'Ballerine', 'Botte', 'Mule', 'Botte haute', 'Cuissarde', 'Sandale compensée', 'Plateforme', 'Mary Jane', 'Slingback', 'Peep toe', 'Gladiateur', 'Espadrille', 'Sabot', 'Tong', 'Loafer', 'Chelsea'],
+  homme: ['Derby', 'Richelieu', 'Mocassin', 'Sneaker', 'Bottine', 'Chelsea', 'Monk', 'Botte', 'Brogue', 'Chukka', 'Desert boot', 'Loafer', 'Running', 'Trail', 'Randonnée', 'Boot cowboy', 'Botte équitation', 'Espadrille', 'Pantoufle'],
+}
+
+export const COULEURS = [
+  'Noir', 'Marron', 'Cognac', 'Tan', 'Bordeaux', 'Marine', 'Blanc', 'Beige',
+  'Gris', 'Camel', 'Kaki', 'Taupe', 'Rouge', 'Rose poudré', 'Nude', 'Or',
+  'Argent', 'Bronze', 'Vert kaki', 'Bleu royal', 'Violet', 'Terracotta',
+  'Corail', 'Multicolore', 'Bicolore',
+]
+
+export const STYLES = [
+  'Classique', 'Sportif', 'Casual', 'Élégant', 'Bohème', 'Minimaliste', 'Urbain',
+  'Soirée', 'Casual chic', 'Rock', 'Preppy', 'Vintage', 'Artisanal',
+  'Luxe discret', 'Streetwear', 'Formel', 'Décontracté', 'Romantique',
+]
+
+export const FINITIONS = [
+  'Cire', 'Vernis', 'Naturel', 'Hydrofuge', 'Patiné', 'Antiqué',
+  'Brillant', 'Mat', 'Satiné', 'Deux tons', 'Délavé', 'Embossé',
+  'Perforé', 'Tressé', 'Métallisé', 'Irisé',
+]
+
+export const HAUTEURS_TALON = [
+  { id: 'plat', label: 'Plat (0–10mm)', min: 0, max: 10 },
+  { id: 'bas', label: 'Bas (10–30mm)', min: 10, max: 30 },
+  { id: 'mi_haut', label: 'Mi-haut (30–60mm)', min: 30, max: 60 },
+  { id: 'haut', label: 'Haut (60–90mm)', min: 60, max: 90 },
+  { id: 'tres_haut', label: 'Très haut (90–120mm)', min: 90, max: 120 },
+  { id: 'aiguille', label: 'Aiguille (>120mm)', min: 120, max: 150 },
+]
+
+export const FERMETURES = {
+  bebe: ['Velcro', 'Scratch', 'Élastique', 'Bouton-pression'],
+  enfant: ['Velcro', 'Scratch', 'Lacets', 'Zip', 'Élastique', 'Bouton-pression'],
+  femme: ['Lacets', 'Zip', 'Zip intérieur', 'Boucle', 'Bride', 'Élastique', 'Monk strap', 'Sans fermeture'],
+  homme: ['Lacets', 'Zip', 'Zip intérieur', 'Boucle', 'Élastique', 'Monk strap', 'Sans fermeture'],
 }
 
 export default segments
