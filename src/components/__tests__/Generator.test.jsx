@@ -239,4 +239,35 @@ describe('Generator', () => {
     fireEvent.change(inspirationInput, { target: { value: 'test inspiration' } })
     expect(inspirationInput.value).toBe('test inspiration')
   })
+
+  describe('dropdown segment filtering', () => {
+    it('should not show vernis finition for bebe segment', () => {
+      // Set store segment to bebe
+      useAtelierStore.getState().setSegment('bebe')
+      const { unmount } = render(<Generator />)
+      // Find all select options text
+      const allOptions = screen.getAllByRole('option').map(o => o.textContent.toLowerCase())
+      expect(allOptions).not.toContain('vernis')
+      unmount()
+    })
+
+    it('should not show lacets fermeture for bebe segment', () => {
+      useAtelierStore.getState().setSegment('bebe')
+      render(<Generator />)
+      const allOptions = screen.getAllByRole('option').map(o => o.textContent.toLowerCase())
+      expect(allOptions).not.toContain('lacets')
+    })
+
+    it('should not show hauteur talon for bebe segment', () => {
+      useAtelierStore.getState().setSegment('bebe')
+      render(<Generator />)
+      expect(screen.queryByText(/Hauteur de talon/)).not.toBeInTheDocument()
+    })
+
+    it('should show hauteur talon for femme segment', () => {
+      useAtelierStore.getState().setSegment('femme')
+      render(<Generator />)
+      expect(screen.getByText(/Hauteur de talon/)).toBeInTheDocument()
+    })
+  })
 })
