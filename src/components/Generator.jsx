@@ -4,11 +4,13 @@ import { Wand2, RotateCcw, Save, Baby, Footprints, Sparkles, UserRound } from 'l
 import useAtelierStore from '../store/useAtelierStore'
 import { getSegment, getSegmentsList, TYPES_CHAUSSURES } from '../data/segments'
 import { enrichirProduit } from '../services/enrichmentService'
-import { genererPromptImage } from '../services/promptBuilder'
+import { genererPromptImage, buildViewPrompts } from '../services/promptBuilder'
+import { generateAllViews } from '../services/imageService'
 import useHistory from '../hooks/useHistory'
 import TechnicalCard from './TechnicalCard'
 import PromptCard from './PromptCard'
 import SourcingModule from './SourcingModule'
+import RenderGallery from './RenderGallery'
 
 const SEGMENT_ICONS = { bebe: Baby, enfant: Footprints, femme: Sparkles, homme: UserRound }
 
@@ -33,6 +35,10 @@ export default function Generator() {
     setIsGenerating,
     isGenerating,
     setPrixEstime,
+    setRenderStatus,
+    updateSingleRender,
+    resetRenders,
+    renderStatus,
   } = useAtelierStore()
 
   const { save } = useHistory()
@@ -49,7 +55,9 @@ export default function Generator() {
   const handleGenerate = async () => {
     setIsGenerating(true)
     setSaved(false)
+    resetRenders()
     try {
+      // 1. Enrich specs
       const enrichment = await enrichirProduit({
         segment,
         type_chaussure: config.type_chaussure,
@@ -65,10 +73,28 @@ export default function Generator() {
         setPrixEstime(segConfig.gamme_prix_mad)
       }
 
+      // 2. Build view prompts
+      const specsWithConfig = { ...enrichment, config: { ...config, segment } }
+      const viewPrompts = buildViewPrompts(specsWithConfig)
+
+      // 3. Legacy prompt for PromptCard display
       const prompt = genererPromptImage({ ...config, segment })
-      setCurrentPrompt(prompt)
+      setCurrentPrompt({ ...prompt, viewPrompts })
+
+      // 4. Launch image generation (parallel, progressive)
+      setRenderStatus('generating')
+      await generateAllViews(viewPrompts, {
+        engines: ['flux', 'dalle'],
+        onResult: (result) => updateSingleRender(result),
+      })
+
+      // 5. Complete
+      setRenderStatus('complete')
     } catch (err) {
       console.error('Erreur génération:', err)
+      if (useAtelierStore.getState().renderStatus === 'generating') {
+        setRenderStatus('error')
+      }
     } finally {
       setIsGenerating(false)
     }
@@ -88,6 +114,7 @@ export default function Generator() {
     resetConfig()
     setCurrentSpecs(null)
     setCurrentPrompt(null)
+    resetRenders()
     setSaved(false)
   }
 
@@ -307,6 +334,9 @@ export default function Generator() {
               </span>
             )}
           </div>
+
+          {/* Render Gallery */}
+          <RenderGallery />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TechnicalCard
