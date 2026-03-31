@@ -1,21 +1,81 @@
 import { motion } from 'framer-motion'
-import { Trash2, Search, Download } from 'lucide-react'
+import { Trash2, Search, Download, PenLine, Camera, FileText, Settings as SettingsIcon } from 'lucide-react'
 import { useState } from 'react'
 import useAtelierStore from '../store/useAtelierStore'
+import { configService } from '../services/configService'
 import Sidebar from '../components/Sidebar'
 import Generator from '../components/Generator'
+import ImportModule from '../components/ImportModule'
+import Settings from '../components/Settings'
 import * as historyService from '../services/historyService'
 
+const INPUT_MODES = [
+  { id: 'text', label: 'Inspiration texte', icon: PenLine },
+  { id: 'photo', label: 'Photo / Croquis', icon: Camera },
+  { id: 'pdf', label: 'Fiche PDF', icon: FileText },
+]
+
 export default function Dashboard() {
-  const { activeView } = useAtelierStore()
+  const { activeView, inputMode, setInputMode } = useAtelierStore()
 
   return (
     <div className="flex min-h-screen bg-blanc-warm">
       <Sidebar />
       <main className="flex-1 min-w-0 overflow-y-auto">
         <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
-          {activeView === 'generator' && <Generator />}
+          {activeView === 'settings' && <Settings />}
           {activeView === 'history' && <HistoryView />}
+          {activeView === 'generator' && (
+            <>
+              {/* Setup guard */}
+              {!configService.hasValidConfig() && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-or/10 border border-or/30 rounded-xl p-4 mb-6 flex items-center justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-noir">Clé API OpenAI requise</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Configurez votre clé pour générer des rendus et analyser vos modèles</p>
+                  </div>
+                  <button
+                    onClick={() => useAtelierStore.getState().setActiveView('settings')}
+                    className="flex items-center gap-2 px-4 py-2 bg-or text-noir text-sm font-medium rounded-lg hover:bg-or-light transition-colors shrink-0"
+                  >
+                    <SettingsIcon size={14} />
+                    Configurer
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Input mode selector */}
+              <div className="flex items-center gap-1 bg-blanc rounded-xl border border-border p-1 mb-6 shadow-sm">
+                {INPUT_MODES.map((mode) => {
+                  const Icon = mode.icon
+                  const isActive = inputMode === mode.id
+                  return (
+                    <button
+                      key={mode.id}
+                      onClick={() => setInputMode(mode.id)}
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? 'bg-noir text-or shadow-sm'
+                          : 'text-gray-500 hover:text-noir hover:bg-blanc-warm'
+                      }`}
+                    >
+                      <Icon size={15} />
+                      <span className="hidden sm:inline">{mode.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Input content based on mode */}
+              {inputMode === 'text' && <Generator />}
+              {inputMode === 'photo' && <ImportModule mode="photo" />}
+              {inputMode === 'pdf' && <ImportModule mode="pdf" />}
+            </>
+          )}
         </div>
       </main>
     </div>
@@ -61,7 +121,6 @@ function HistoryView() {
         )}
       </div>
 
-      {/* Recherche */}
       <div className="relative">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
@@ -73,7 +132,6 @@ function HistoryView() {
         />
       </div>
 
-      {/* Liste */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-lg font-serif">Aucune fiche sauvegardée</p>

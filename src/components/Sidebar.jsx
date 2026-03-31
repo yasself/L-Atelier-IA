@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Baby, Footprints, Sparkles, UserRound, Clock, PanelLeftClose, PanelLeft, Trash2 } from 'lucide-react'
+import { Baby, Footprints, Sparkles, UserRound, Clock, PanelLeftClose, PanelLeft, Trash2, Settings } from 'lucide-react'
 import useAtelierStore from '../store/useAtelierStore'
 import { getSegmentsList } from '../data/segments'
 import useHistory from '../hooks/useHistory'
@@ -95,6 +95,7 @@ export default function Sidebar() {
             {[
               { id: 'generator', label: 'Générateur', icon: Sparkles },
               { id: 'history', label: 'Historique', icon: Clock },
+              { id: 'settings', label: 'Paramètres', icon: Settings },
             ].map((item) => (
               <li key={item.id}>
                 <button
