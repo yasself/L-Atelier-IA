@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Wand2, RotateCcw, Save, Baby, Footprints, Sparkles, UserRound } from 'lucide-react'
 import useAtelierStore from '../store/useAtelierStore'
-import { getSegment, getSegmentsList } from '../data/segments'
+import { getSegment, getSegmentsList, TYPES_CHAUSSURES } from '../data/segments'
 import { enrichirProduit } from '../services/enrichmentService'
 import { genererPromptImage } from '../services/promptBuilder'
 import useHistory from '../hooks/useHistory'
@@ -11,13 +11,6 @@ import PromptCard from './PromptCard'
 import SourcingModule from './SourcingModule'
 
 const SEGMENT_ICONS = { bebe: Baby, enfant: Footprints, femme: Sparkles, homme: UserRound }
-
-const TYPES_CHAUSSURES = {
-  bebe: ['Chausson', 'Bottillon', 'Sandale', 'Basket souple'],
-  enfant: ['Basket', 'Sandale', 'Bottine', 'Derby', 'Ballerine', 'Botte'],
-  femme: ['Escarpin', 'Bottine', 'Sandale', 'Sneaker', 'Derby', 'Mocassin', 'Ballerine', 'Botte', 'Mule'],
-  homme: ['Derby', 'Richelieu', 'Mocassin', 'Sneaker', 'Bottine', 'Chelsea', 'Monk', 'Botte'],
-}
 
 const COULEURS = ['Noir', 'Marron', 'Cognac', 'Tan', 'Bordeaux', 'Marine', 'Blanc', 'Beige', 'Gris', 'Camel', 'Kaki']
 const STYLES = ['Classique', 'Sportif', 'Casual', 'Élégant', 'Bohème', 'Minimaliste', 'Urbain']

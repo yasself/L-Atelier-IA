@@ -4,7 +4,7 @@
  * 2. Si confiance < 80%, appel Claude API en fallback
  */
 
-import { materiaux, semelles, montages } from '../data/specs_engine'
+import { materiaux, semelles, montages, INTENTION_MAP } from '../data/specs_engine'
 import { fournisseurs } from '../data/sourcing'
 import segments from '../data/segments'
 
@@ -60,6 +60,28 @@ function lookupStatique(input) {
     tests: segConfig.tests_requis,
     materiaux_recommandes: segConfig.materiaux_recommandes,
     montages_recommandes: segConfig.montages_recommandes,
+  }
+
+  // Check INTENTION_MAP for keyword matches
+  const keywords = [type_chaussure, ...(input.inspiration || '').toLowerCase().split(/\s+/)].filter(Boolean)
+  let bestMatch = null
+  let bestConfidence = 0
+  for (const keyword of keywords) {
+    const match = INTENTION_MAP[keyword]
+    if (match && match.confidence > bestConfidence) {
+      bestMatch = match
+      bestConfidence = match.confidence
+    }
+  }
+
+  if (bestMatch) {
+    data.intention = bestMatch
+    data.materiau_principal = bestMatch.material
+    data.semelle_recommandee = bestMatch.semelle
+    data.montage_recommande = bestMatch.montage
+    data.finition_recommandee = bestMatch.finition
+    data.doublure_recommandee = bestMatch.doublure
+    confiance = Math.max(confiance, Math.round(bestConfidence * 100))
   }
 
   // Enrichir avec les matériaux détaillés
