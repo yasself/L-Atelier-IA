@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Wand2, RotateCcw, Save } from 'lucide-react'
+import { Wand2, RotateCcw, Save, Baby, Footprints, Sparkles, UserRound } from 'lucide-react'
 import useAtelierStore from '../store/useAtelierStore'
-import { getSegment } from '../data/segments'
-import { getMontagesParSegment, getSemellesParSegment } from '../data/specs_engine'
+import { getSegment, getSegmentsList } from '../data/segments'
 import { enrichirProduit } from '../services/enrichmentService'
 import { genererPromptImage } from '../services/promptBuilder'
-import * as historyService from '../services/historyService'
+import useHistory from '../hooks/useHistory'
 import TechnicalCard from './TechnicalCard'
 import PromptCard from './PromptCard'
 import SourcingModule from './SourcingModule'
+
+const SEGMENT_ICONS = { bebe: Baby, enfant: Footprints, femme: Sparkles, homme: UserRound }
 
 const TYPES_CHAUSSURES = {
   bebe: ['Chausson', 'Bottillon', 'Sandale', 'Basket souple'],
@@ -21,17 +22,39 @@ const TYPES_CHAUSSURES = {
 const COULEURS = ['Noir', 'Marron', 'Cognac', 'Tan', 'Bordeaux', 'Marine', 'Blanc', 'Beige', 'Gris', 'Camel', 'Kaki']
 const STYLES = ['Classique', 'Sportif', 'Casual', 'Élégant', 'Bohème', 'Minimaliste', 'Urbain']
 
+const selectClass =
+  'w-full px-3 py-2 border border-border rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or'
+const labelClass = 'block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide'
+
 export default function Generator() {
-  const { segment, config, setConfig, resetConfig, setEnrichmentResult, enrichmentResult, setGeneratedPrompt, generatedPrompt, loading, setLoading } = useAtelierStore()
+  const {
+    segment,
+    setSegment,
+    config,
+    setConfig,
+    resetConfig,
+    setCurrentSpecs,
+    currentSpecs,
+    setCurrentPrompt,
+    currentPrompt,
+    setIsGenerating,
+    isGenerating,
+    setPrixEstime,
+  } = useAtelierStore()
+
+  const { save } = useHistory()
   const [saved, setSaved] = useState(false)
 
   const segConfig = getSegment(segment)
-  const montagesDisponibles = getMontagesParSegment(segment)
-  const semellesDisponibles = getSemellesParSegment(segment)
+  const segmentsList = getSegmentsList()
   const types = TYPES_CHAUSSURES[segment] || []
 
+  // Montages and semelles come from segment config (segments.js), not specs_engine
+  const montagesDisponibles = segConfig?.montages_recommandes || []
+  const semellesDisponibles = segConfig?.materiaux_recommandes?.semelle || []
+
   const handleGenerate = async () => {
-    setLoading(true)
+    setIsGenerating(true)
     setSaved(false)
     try {
       const enrichment = await enrichirProduit({
@@ -39,45 +62,70 @@ export default function Generator() {
         type_chaussure: config.type_chaussure,
         materiaux_souhaites: config.materiau_tige ? [config.materiau_tige] : [],
         budget: config.budget,
+        inspiration: config.inspiration,
       })
-      setEnrichmentResult(enrichment)
+      setCurrentSpecs(enrichment)
+
+      if (enrichment.gamme_prix) {
+        setPrixEstime(enrichment.gamme_prix)
+      } else if (segConfig?.gamme_prix_mad) {
+        setPrixEstime(segConfig.gamme_prix_mad)
+      }
 
       const prompt = genererPromptImage({ ...config, segment })
-      setGeneratedPrompt(prompt)
+      setCurrentPrompt(prompt)
     } catch (err) {
       console.error('Erreur génération:', err)
     } finally {
-      setLoading(false)
+      setIsGenerating(false)
     }
   }
 
   const handleSave = () => {
-    historyService.create({
+    save({
       config: { ...config, segment },
-      enrichment: enrichmentResult,
-      prompt: generatedPrompt,
+      enrichment: currentSpecs,
+      prompt: currentPrompt,
+      sourcingMode: useAtelierStore.getState().sourcingMode,
     })
     setSaved(true)
   }
 
   const handleReset = () => {
     resetConfig()
-    setEnrichmentResult(null)
-    setGeneratedPrompt(null)
+    setCurrentSpecs(null)
+    setCurrentPrompt(null)
     setSaved(false)
   }
 
+  const sourceColor =
+    currentSpecs?.source === 'statique'
+      ? 'bg-green-100 text-green-700'
+      : 'bg-or/15 text-or-dark'
+
   return (
     <div className="space-y-6">
-      {/* Header segment */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-serif text-noir">
-            {segConfig?.label || segment}
-          </h2>
-          <p className="text-sm text-gray-500">
-            Pointures {segConfig?.pointures.min}–{segConfig?.pointures.max} · {segConfig?.age}
-          </p>
+      {/* Segment selector */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex gap-2 flex-wrap">
+          {segmentsList.map((seg) => {
+            const Icon = SEGMENT_ICONS[seg.id] || Footprints
+            const isActive = segment === seg.id
+            return (
+              <button
+                key={seg.id}
+                onClick={() => { setSegment(seg.id); setSaved(false) }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  isActive
+                    ? 'bg-noir text-or border-noir'
+                    : 'bg-blanc text-gray-500 border-border hover:border-or hover:text-noir'
+                }`}
+              >
+                <Icon size={15} />
+                {seg.label}
+              </button>
+            )
+          })}
         </div>
         <button
           onClick={handleReset}
@@ -88,36 +136,45 @@ export default function Generator() {
         </button>
       </div>
 
-      {/* Formulaire */}
+      {/* Subtitle */}
+      {segConfig && (
+        <p className="text-sm text-gray-400">
+          Pointures {segConfig.pointures.min}–{segConfig.pointures.max} · {segConfig.age}
+        </p>
+      )}
+
+      {/* Form */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-blanc rounded-xl border border-gray-200 p-6 shadow-sm"
+        className="bg-blanc rounded-xl border border-border p-6 shadow-sm"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Type */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Type de chaussure</label>
+            <label className={labelClass}>Type de chaussure</label>
             <select
               value={config.type_chaussure}
               onChange={(e) => setConfig({ type_chaussure: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or"
+              className={selectClass}
             >
               <option value="">Sélectionner...</option>
-              {types.map((t) => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+              {types.map((t) => (
+                <option key={t} value={t.toLowerCase()}>{t}</option>
+              ))}
             </select>
           </div>
 
           {/* Matériau tige */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Matériau tige</label>
+            <label className={labelClass}>Matériau tige</label>
             <select
               value={config.materiau_tige}
               onChange={(e) => setConfig({ materiau_tige: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or"
+              className={selectClass}
             >
               <option value="">Sélectionner...</option>
-              {(segConfig?.materiaux_recommandes.tige || []).map((m) => (
+              {(segConfig?.materiaux_recommandes?.tige || []).map((m) => (
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
@@ -125,69 +182,73 @@ export default function Generator() {
 
           {/* Couleur */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Couleur principale</label>
+            <label className={labelClass}>Couleur principale</label>
             <select
               value={config.couleur}
               onChange={(e) => setConfig({ couleur: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or"
+              className={selectClass}
             >
               <option value="">Sélectionner...</option>
-              {COULEURS.map((c) => <option key={c} value={c.toLowerCase()}>{c}</option>)}
+              {COULEURS.map((c) => (
+                <option key={c} value={c.toLowerCase()}>{c}</option>
+              ))}
             </select>
           </div>
 
           {/* Montage */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Montage</label>
+            <label className={labelClass}>Montage</label>
             <select
               value={config.montage}
               onChange={(e) => setConfig({ montage: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or"
+              className={selectClass}
             >
               <option value="">Sélectionner...</option>
-              {Object.entries(montagesDisponibles).map(([id, m]) => (
-                <option key={id} value={id}>{m.label}</option>
+              {montagesDisponibles.map((id) => (
+                <option key={id} value={id}>{id.replace(/_/g, ' ')}</option>
               ))}
             </select>
           </div>
 
           {/* Semelle */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Type de semelle</label>
+            <label className={labelClass}>Type de semelle</label>
             <select
               value={config.semelle_type}
               onChange={(e) => setConfig({ semelle_type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or"
+              className={selectClass}
             >
               <option value="">Sélectionner...</option>
-              {Object.entries(semellesDisponibles).map(([id, s]) => (
-                <option key={id} value={id}>{s.label}</option>
+              {semellesDisponibles.map((id) => (
+                <option key={id} value={id}>{id.replace(/_/g, ' ')}</option>
               ))}
             </select>
           </div>
 
           {/* Style */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Style</label>
+            <label className={labelClass}>Style</label>
             <select
               value={config.style}
               onChange={(e) => setConfig({ style: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or"
+              className={selectClass}
             >
               <option value="">Sélectionner...</option>
-              {STYLES.map((s) => <option key={s} value={s.toLowerCase()}>{s}</option>)}
+              {STYLES.map((s) => (
+                <option key={s} value={s.toLowerCase()}>{s}</option>
+              ))}
             </select>
           </div>
 
-          {/* Finitions */}
+          {/* Inspiration — free text */}
           <div className="md:col-span-2 lg:col-span-3">
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Finitions & détails</label>
-            <input
-              type="text"
-              value={config.finitions}
-              onChange={(e) => setConfig({ finitions: e.target.value })}
-              placeholder="Ex: surpiqûres contrastées, perforation brogue, bord franc..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or"
+            <label className={labelClass}>Inspiration — décrivez librement la chaussure souhaitée</label>
+            <textarea
+              value={config.inspiration || ''}
+              onChange={(e) => setConfig({ inspiration: e.target.value })}
+              rows={3}
+              placeholder="Ex: Derby bicolore cognac/noir, surpiqûres contrastées, semelle cousue Goodyear, allure parisienne années 40..."
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or resize-none"
             />
           </div>
         </div>
@@ -196,18 +257,18 @@ export default function Generator() {
         <div className="flex items-center gap-3 mt-6 pt-4 border-t border-gray-100">
           <button
             onClick={handleGenerate}
-            disabled={loading || !config.type_chaussure}
-            className="flex items-center gap-2 px-5 py-2.5 bg-or text-noir font-medium text-sm rounded-lg hover:bg-or-light transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={isGenerating || !config.type_chaussure}
+            className="flex items-center gap-2 px-5 py-2.5 bg-or text-noir font-medium text-sm rounded-lg hover:bg-or/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Wand2 size={16} />
-            {loading ? 'Génération...' : 'Générer la fiche'}
+            {isGenerating ? 'Génération...' : 'Générer la fiche'}
           </button>
 
-          {enrichmentResult && (
+          {currentSpecs && (
             <button
               onClick={handleSave}
               disabled={saved}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-sm rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-40"
+              className="flex items-center gap-2 px-4 py-2.5 border border-border text-sm rounded-lg hover:bg-blanc-warm transition-colors disabled:opacity-40"
             >
               <Save size={16} />
               {saved ? 'Sauvegardé ✓' : 'Sauvegarder'}
@@ -216,22 +277,54 @@ export default function Generator() {
         </div>
       </motion.div>
 
-      {/* Résultats */}
-      {enrichmentResult && (
+      {/* Loading skeleton */}
+      {isGenerating && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="bg-blanc rounded-xl border border-border p-6 shadow-sm space-y-3"
         >
-          <TechnicalCard
-            segment={segment}
-            config={config}
-            enrichment={enrichmentResult}
-          />
-          <div className="space-y-6">
-            <PromptCard prompt={generatedPrompt} config={config} segment={segment} />
-            <SourcingModule segment={segment} config={config} />
+          <div className="h-5 bg-gray-100 rounded w-1/3" />
+          <div className="h-4 bg-gray-100 rounded w-2/3" />
+          <div className="h-4 bg-gray-100 rounded w-1/2" />
+          <div className="h-4 bg-gray-100 rounded w-3/4" />
+        </motion.div>
+      )}
+
+      {/* Results */}
+      {!isGenerating && currentSpecs && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="space-y-4"
+        >
+          {/* Source badge */}
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${sourceColor}`}>
+              {currentSpecs.source === 'statique'
+                ? 'Statique'
+                : currentSpecs.source === 'ia'
+                ? 'IA'
+                : 'Hybride'}
+            </span>
+            {currentSpecs.confiance != null && (
+              <span className="text-xs text-gray-400">
+                Confiance : {currentSpecs.confiance}%
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TechnicalCard
+              segment={segment}
+              config={config}
+              enrichment={currentSpecs}
+            />
+            <div className="space-y-6">
+              <PromptCard prompt={currentPrompt} config={config} segment={segment} />
+              <SourcingModule segment={segment} config={config} />
+            </div>
           </div>
         </motion.div>
       )}

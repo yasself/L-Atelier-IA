@@ -14,25 +14,8 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }) => children,
 }))
 
-// Mock promptBuilder for variations
-vi.mock('../../services/promptBuilder', () => ({
-  genererVariations: vi.fn().mockReturnValue([
-    {
-      id: 1,
-      angle: '3/4 front',
-      prompt: 'Variation 1 prompt text',
-    },
-    {
-      id: 2,
-      angle: 'side view',
-      prompt: 'Variation 2 prompt text',
-    },
-  ]),
-}))
-
 describe('PromptCard', () => {
   beforeEach(() => {
-    // Mock clipboard API
     Object.assign(navigator, {
       clipboard: {
         writeText: vi.fn().mockResolvedValue(undefined),
@@ -49,36 +32,29 @@ describe('PromptCard', () => {
   it('should render prompt card when prompt is provided', () => {
     const prompt = {
       prompt: 'Ultra-realistic studio photography of a black leather derby shoe...',
-      parametres: {
-        segment: 'Femme',
-        type: 'derby',
-        style: 'classique',
-      },
+      parametres: { segment: 'Femme', type: 'derby', style: 'classique' },
     }
     render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
     expect(screen.getByText(/Prompt Image/)).toBeInTheDocument()
   })
 
-  it('should display the prompt text', () => {
+  it('should display the prompt text in monospace zone', () => {
     const prompt = {
       prompt: 'Test prompt for shoe image generation',
-      parametres: {
-        segment: 'Femme',
-        type: 'derby',
-      },
+      parametres: { segment: 'Femme', type: 'derby' },
     }
     render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
     expect(screen.getByText(/Test prompt for shoe image generation/)).toBeInTheDocument()
+    expect(screen.getByText('Prompt positif')).toBeInTheDocument()
   })
 
-  it('should have a copy button', () => {
+  it('should have a copy button with Copier label', () => {
     const prompt = {
       prompt: 'Test prompt',
       parametres: { segment: 'Femme' },
     }
     render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
-    const buttons = screen.getAllByRole('button')
-    expect(buttons.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('Copier')).toBeInTheDocument()
   })
 
   it('should copy prompt to clipboard when copy button is clicked', async () => {
@@ -96,7 +72,7 @@ describe('PromptCard', () => {
     })
   })
 
-  it('should show check icon after copying', async () => {
+  it('should show Copié feedback after clicking copy', async () => {
     const prompt = {
       prompt: 'Test prompt',
       parametres: { segment: 'Femme' },
@@ -107,23 +83,16 @@ describe('PromptCard', () => {
     fireEvent.click(copyButton)
 
     await waitFor(() => {
-      // After copying, the Check icon should be rendered
-      const buttons = screen.getAllByRole('button')
-      expect(buttons.length).toBeGreaterThan(0)
-    }, { timeout: 100 })
+      expect(screen.getByText('Copié !')).toBeInTheDocument()
+    })
   })
 
   it('should display parametres as tags', () => {
     const prompt = {
       prompt: 'Test prompt',
-      parametres: {
-        segment: 'Femme',
-        type: 'derby',
-        style: 'classique',
-      },
+      parametres: { segment: 'Femme', type: 'derby', style: 'classique' },
     }
     render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
-
     expect(screen.getByText(/segment:/i)).toBeInTheDocument()
     expect(screen.getByText(/type:/i)).toBeInTheDocument()
     expect(screen.getByText(/style:/i)).toBeInTheDocument()
@@ -132,115 +101,53 @@ describe('PromptCard', () => {
   it('should not display empty parametres', () => {
     const prompt = {
       prompt: 'Test prompt',
-      parametres: {
-        segment: 'Femme',
-        type: '',
-        style: null,
-      },
+      parametres: { segment: 'Femme', type: '', style: null },
     }
     render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
-
     expect(screen.getByText(/segment:/i)).toBeInTheDocument()
-    // type and style are empty, so they should not be displayed
   })
 
-  it('should have a refresh button for variations', () => {
+  it('should have a collapsible negative prompt section', () => {
+    const prompt = {
+      prompt: 'Test prompt',
+      parametres: { segment: 'Femme' },
+    }
+    render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
+    expect(screen.getByText('Prompt négatif')).toBeInTheDocument()
+  })
+
+  it('should expand negative prompt when clicked', async () => {
     const prompt = {
       prompt: 'Test prompt',
       parametres: { segment: 'Femme' },
     }
     render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
 
-    const refreshButton = screen.getByTitle('Générer des variations')
-    expect(refreshButton).toBeInTheDocument()
+    const negativeButton = screen.getByText('Prompt négatif').closest('button')
+    fireEvent.click(negativeButton)
+
+    await waitFor(() => {
+      expect(screen.getByText(/low quality, blurry/)).toBeInTheDocument()
+    })
   })
 
-  it('should show variations section when refresh button is clicked', async () => {
+  it('should display quality indicators', () => {
     const prompt = {
       prompt: 'Test prompt',
       parametres: { segment: 'Femme' },
     }
-    const config = { type_chaussure: 'derby' }
-
-    render(<PromptCard prompt={prompt} config={config} segment="femme" />)
-
-    const refreshButton = screen.getByTitle('Générer des variations')
-    fireEvent.click(refreshButton)
-
-    await waitFor(() => {
-      expect(screen.getByText(/Variations/)).toBeInTheDocument()
-    })
+    render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
+    expect(screen.getByText('Indicateurs qualité')).toBeInTheDocument()
+    expect(screen.getByText('Haute fidélité')).toBeInTheDocument()
+    expect(screen.getByText('Studio professionnel')).toBeInTheDocument()
   })
 
-  it('should hide variations when refresh button is clicked again', async () => {
+  it('should display compatibility label', () => {
     const prompt = {
       prompt: 'Test prompt',
       parametres: { segment: 'Femme' },
     }
-    const config = { type_chaussure: 'derby' }
-
-    render(<PromptCard prompt={prompt} config={config} segment="femme" />)
-
-    const refreshButton = screen.getByTitle('Générer des variations')
-
-    // First click to show
-    fireEvent.click(refreshButton)
-    await waitFor(() => {
-      expect(screen.getByText(/Variations/)).toBeInTheDocument()
-    })
-
-    // Second click to hide
-    fireEvent.click(refreshButton)
-    await waitFor(() => {
-      expect(screen.queryByText(/Variations/)).not.toBeInTheDocument()
-    }, { timeout: 100 })
-  })
-
-  it('should display variation prompts with copy buttons', async () => {
-    const prompt = {
-      prompt: 'Test prompt',
-      parametres: { segment: 'Femme' },
-    }
-    const config = { type_chaussure: 'derby' }
-
-    render(<PromptCard prompt={prompt} config={config} segment="femme" />)
-
-    const refreshButton = screen.getByTitle('Générer des variations')
-    fireEvent.click(refreshButton)
-
-    await waitFor(() => {
-      expect(screen.getByText(/Variation 1 prompt text/)).toBeInTheDocument()
-      expect(screen.getByText(/Variation 2 prompt text/)).toBeInTheDocument()
-    })
-  })
-
-  it('should copy variation prompt to clipboard', async () => {
-    const prompt = {
-      prompt: 'Test prompt',
-      parametres: { segment: 'Femme' },
-    }
-    const config = { type_chaussure: 'derby' }
-
-    render(<PromptCard prompt={prompt} config={config} segment="femme" />)
-
-    const refreshButton = screen.getByTitle('Générer des variations')
-    fireEvent.click(refreshButton)
-
-    await waitFor(() => {
-      expect(screen.getByText(/Variation 1 prompt text/)).toBeInTheDocument()
-    })
-
-    // Find copy buttons for variations (there will be multiple)
-    const copyButtons = screen.getAllByRole('button').filter(
-      btn => btn.querySelector('[data-icon="copy"]') || btn.title === ''
-    )
-    // Click a variation copy button
-    const variationCopyBtn = copyButtons[copyButtons.length - 1]
-    if (variationCopyBtn) {
-      fireEvent.click(variationCopyBtn)
-      await waitFor(() => {
-        expect(navigator.clipboard.writeText).toHaveBeenCalled()
-      }, { timeout: 100 })
-    }
+    render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
+    expect(screen.getByText(/Compatible : Midjourney · DALL-E · Flux/)).toBeInTheDocument()
   })
 })

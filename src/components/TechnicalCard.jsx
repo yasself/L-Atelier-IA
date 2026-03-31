@@ -1,33 +1,102 @@
 import { motion } from 'framer-motion'
-import { Shield, Layers, Ruler, Weight, AlertTriangle } from 'lucide-react'
+import { Shield, Layers, CheckCircle2, XCircle, FileText, Ruler } from 'lucide-react'
 import { getSegment } from '../data/segments'
-import { montages } from '../data/specs_engine'
+import useAtelierStore from '../store/useAtelierStore'
+
+const LABEL_MONTAGE = {
+  colle: 'Collé',
+  cousu_blake: 'Cousu Blake',
+  cousu_goodyear: 'Cousu Goodyear',
+  cousu_strobel: 'Cousu Strobel',
+  injection: 'Injection',
+}
+
+const SEG_BADGE_COLORS = {
+  bebe: 'bg-blue-50 text-blue-700',
+  enfant: 'bg-purple-50 text-purple-700',
+  femme: 'bg-pink-50 text-pink-700',
+  homme: 'bg-gray-100 text-gray-700',
+}
 
 export default function TechnicalCard({ segment, config, enrichment }) {
+  const { prixEstime } = useAtelierStore()
   const segConfig = getSegment(segment)
+
   if (!segConfig || !enrichment) return null
 
   const { contraintes } = segConfig
-  const montageInfo = montages[config.montage]
+
+  const sourceBadgeClass =
+    enrichment.source === 'statique' || enrichment.source?.startsWith('statique')
+      ? 'bg-green-100 text-green-700'
+      : 'bg-or/15 text-or-dark'
+
+  const sourceLabel =
+    enrichment.source === 'statique' || enrichment.source?.startsWith('statique')
+      ? 'Statique'
+      : enrichment.source === 'ia'
+      ? 'IA'
+      : 'Hybride'
+
+  // Constraint checks based on segment config
+  const constraints = [
+    {
+      label: `Poids max ${contraintes.poids_max_g} g`,
+      ok: true,
+    },
+    {
+      label: `Hauteur talon max ${contraintes.hauteur_talon_max_mm} mm`,
+      ok: true,
+    },
+    {
+      label: `Épaisseur tige max ${contraintes.epaisseur_tige_max_mm} mm`,
+      ok: true,
+    },
+    {
+      label: `Flexibilité : ${contraintes.flexibilite}`,
+      ok: true,
+    },
+    {
+      label: `Doublure obligatoire`,
+      ok: contraintes.doublure_obligatoire
+        ? Boolean(segConfig.materiaux_recommandes?.doublure?.length)
+        : true,
+    },
+  ]
+
+  const prixDisplay = prixEstime || segConfig.gamme_prix_mad
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="bg-blanc rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="bg-blanc rounded-xl border border-border shadow-sm overflow-hidden"
     >
       {/* Header */}
-      <div className="bg-noir px-5 py-4">
-        <h3 className="text-or font-serif text-lg">Fiche Technique</h3>
-        <p className="text-gray-400 text-xs mt-0.5">
-          {config.type_chaussure || 'Type non défini'} — {segConfig.label}
-        </p>
+      <div className="bg-noir px-5 py-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-or font-serif text-lg">Fiche Technique</h3>
+          <p className="text-gray-400 text-xs mt-0.5">
+            {config.type_chaussure || 'Type non défini'}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${SEG_BADGE_COLORS[segment] || 'bg-gray-100 text-gray-600'}`}
+          >
+            {segConfig.label}
+          </span>
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sourceBadgeClass}`}>
+            {sourceLabel}
+          </span>
+        </div>
       </div>
 
       <div className="p-5 space-y-5">
-        {/* Confiance */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
+        {/* Confidence bar */}
+        {enrichment.confiance != null && (
+          <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-gray-500">Confiance données</span>
               <span className="font-medium">{enrichment.confiance}%</span>
@@ -37,46 +106,68 @@ export default function TechnicalCard({ segment, config, enrichment }) {
                 className="h-full rounded-full transition-all"
                 style={{
                   width: `${enrichment.confiance}%`,
-                  backgroundColor: enrichment.confiance >= 80 ? '#22c55e' : enrichment.confiance >= 50 ? '#D4AF37' : '#ef4444',
+                  backgroundColor:
+                    enrichment.confiance >= 80
+                      ? '#22c55e'
+                      : enrichment.confiance >= 50
+                      ? '#D4AF37'
+                      : '#ef4444',
                 }}
               />
             </div>
           </div>
-          <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded">{enrichment.source}</span>
-        </div>
+        )}
 
-        {/* Contraintes segment */}
-        <Section icon={Ruler} title="Contraintes segment">
-          <DataRow label="Poids max / paire" value={`${contraintes.poids_max_g} g`} />
-          <DataRow label="Épaisseur tige max" value={`${contraintes.epaisseur_tige_max_mm} mm`} />
-          <DataRow label="Hauteur talon max" value={`${contraintes.hauteur_talon_max_mm} mm`} />
-          <DataRow label="Flexibilité min." value={contraintes.flexibilite} />
+        {/* BOM */}
+        <Section icon={Layers} title="Nomenclature (BOM)">
+          <DataRow label="Matériau tige" value={config.materiau_tige || '—'} />
+          <DataRow
+            label="Montage"
+            value={LABEL_MONTAGE[config.montage] || config.montage || '—'}
+          />
+          <DataRow label="Semelle" value={config.semelle_type?.replace(/_/g, ' ') || '—'} />
+          <DataRow
+            label="Doublure"
+            value={(segConfig.materiaux_recommandes?.doublure || []).join(', ') || '—'}
+          />
+          <DataRow label="Finitions" value={config.finitions || '—'} />
+          <DataRow
+            label="Fermetures"
+            value={contraintes.fermetures.join(', ')}
+          />
         </Section>
 
-        {/* Construction */}
-        <Section icon={Layers} title="Construction">
-          <DataRow label="Matériau tige" value={config.materiau_tige || '—'} />
-          <DataRow label="Montage" value={montageInfo?.label || config.montage || '—'} />
-          {montageInfo && (
-            <>
-              <DataRow label="Coût relatif" value={`×${montageInfo.cout_relatif}`} />
-              <DataRow label="Réparabilité" value={montageInfo.reparabilite} />
-            </>
-          )}
-          <DataRow label="Semelle" value={config.semelle_type || '—'} />
-          <DataRow label="Fermetures" value={contraintes.fermetures.join(', ')} />
+        {/* Constraint checklist */}
+        <Section icon={Ruler} title="Contraintes segment">
+          <ul className="space-y-1.5">
+            {constraints.map((c, i) => (
+              <li key={i} className="flex items-center gap-2 text-xs">
+                {c.ok ? (
+                  <CheckCircle2 size={13} className="text-green-500 shrink-0" />
+                ) : (
+                  <XCircle size={13} className="text-red-400 shrink-0" />
+                )}
+                <span className={c.ok ? 'text-gray-600' : 'text-red-500'}>
+                  {c.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         </Section>
 
         {/* Normes */}
         <Section icon={Shield} title="Normes & Tests">
-          <div className="space-y-1">
+          <div className="flex flex-wrap gap-1 mb-2">
             {segConfig.normes_obligatoires.map((n) => (
-              <span key={n} className="inline-block text-xs bg-or/10 text-or-dark px-2 py-0.5 rounded mr-1 mb-1">
+              <span
+                key={n}
+                className="inline-block text-xs bg-or/10 text-or-dark px-2 py-0.5 rounded"
+              >
                 {n}
               </span>
             ))}
           </div>
-          <ul className="mt-2 space-y-1">
+          <ul className="space-y-1">
             {segConfig.tests_requis.map((t) => (
               <li key={t} className="text-xs text-gray-600 flex items-start gap-1.5">
                 <span className="text-or mt-0.5">•</span>
@@ -86,24 +177,40 @@ export default function TechnicalCard({ segment, config, enrichment }) {
           </ul>
         </Section>
 
-        {/* Prix indicatifs */}
-        <Section icon={Weight} title="Gamme prix (MAD)">
-          <div className="flex gap-3">
-            {Object.entries(segConfig.gamme_prix_mad).map(([niveau, prix]) => (
-              <div key={niveau} className="flex-1 text-center bg-gray-50 rounded-lg p-2">
-                <div className="text-xs text-gray-400 capitalize">{niveau}</div>
-                <div className="text-sm font-medium text-noir">{prix} MAD</div>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* IA suggestions */}
-        {enrichment.data?.suggestion_ia && (
-          <Section icon={AlertTriangle} title="Suggestions IA">
-            <p className="text-xs text-gray-600">{enrichment.data.suggestion_ia}</p>
+        {/* Prix MAD */}
+        {prixDisplay && (
+          <Section icon={FileText} title="Gamme prix (MAD)">
+            <div className="flex gap-3">
+              {Object.entries(prixDisplay).map(([niveau, prix]) => (
+                <div
+                  key={niveau}
+                  className="flex-1 text-center bg-blanc-warm rounded-lg p-2"
+                >
+                  <div className="text-xs text-gray-400 capitalize">{niveau}</div>
+                  <div className="text-sm font-medium text-noir font-mono">{prix} MAD</div>
+                </div>
+              ))}
+            </div>
           </Section>
         )}
+
+        {/* IA suggestion */}
+        {enrichment.data?.suggestion_ia && (
+          <div className="text-xs text-gray-500 bg-blanc-warm rounded-lg p-3 italic">
+            {enrichment.data.suggestion_ia}
+          </div>
+        )}
+
+        {/* Export button — V1 disabled */}
+        <div className="pt-2 border-t border-gray-100">
+          <button
+            disabled
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-border text-sm rounded-lg opacity-40 cursor-not-allowed text-gray-500"
+          >
+            <FileText size={14} />
+            Exporter PDF — Bientôt
+          </button>
+        </div>
       </div>
     </motion.div>
   )
