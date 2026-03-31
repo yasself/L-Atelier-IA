@@ -147,6 +147,9 @@ export default function RenderGallery() {
             <Download size={14} />
             Tout télécharger
           </button>
+          {usedEngine === 'dalle3' && (
+            <p className="text-xs text-gray-400 mt-2">Les images DALL-E expirent après 1 heure. Téléchargez avant expiration.</p>
+          )}
         </div>
       )}
 
