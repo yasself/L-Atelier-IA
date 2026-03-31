@@ -135,6 +135,14 @@ export const materiaux = {
       resistance_flexion: 50000,
       certification: null,
     },
+    neoprene: {
+      label: 'Néoprène',
+      epaisseur: { min: 1.0, max: 3.0, unite: 'mm' },
+      usages: ['tige', 'col'],
+      segments: ['femme', 'homme'],
+      resistance_flexion: 70000,
+      certification: null,
+    },
   },
   textile: {
     mesh: {
@@ -152,6 +160,38 @@ export const materiaux = {
       segments: ['enfant', 'femme', 'homme'],
       resistance_flexion: 40000,
       certification: 'OEKO-TEX',
+    },
+    canvas: {
+      label: 'Canvas',
+      epaisseur: { min: 0.6, max: 1.2, unite: 'mm' },
+      usages: ['tige'],
+      segments: ['enfant', 'femme', 'homme'],
+      resistance_flexion: 45000,
+      certification: 'OEKO-TEX',
+    },
+    denim: {
+      label: 'Denim',
+      epaisseur: { min: 0.8, max: 1.4, unite: 'mm' },
+      usages: ['tige'],
+      segments: ['femme', 'homme'],
+      resistance_flexion: 35000,
+      certification: null,
+    },
+    knit: {
+      label: 'Knit technique',
+      epaisseur: { min: 0.3, max: 0.8, unite: 'mm' },
+      usages: ['tige'],
+      segments: ['femme', 'homme', 'enfant'],
+      resistance_flexion: 90000,
+      certification: null,
+    },
+    toile_enduite: {
+      label: 'Toile enduite',
+      epaisseur: { min: 0.6, max: 1.2, unite: 'mm' },
+      usages: ['tige'],
+      segments: ['femme', 'homme'],
+      resistance_flexion: 50000,
+      certification: null,
     },
   },
 }
