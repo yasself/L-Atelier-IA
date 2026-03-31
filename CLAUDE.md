@@ -60,3 +60,11 @@ Palette : #FFFFFF / #1A1A1A / #D4AF37
 Données métier    → docs/DATA_CONTEXT.md
 Composants UI     → docs/UI_CONTEXT.md
 Services et API   → docs/SERVICES_CONTEXT.md
+
+## ⚠️ Dette technique V2 (traiter avant mise en production partagée)
+- Clés API (VITE_REPLICATE_API_KEY, VITE_OPENAI_API_KEY) exposées côté client
+  → Solution : Vercel Edge Functions proxy avant tout partage utilisateur
+- getRelevantCategories : helper d'affichage encore dans SourcingModule
+  → Solution : migrer vers sourcingService.js
+- TYPES_CHAUSSURES : constante encore dans Generator
+  → Solution : migrer vers src/data/segments.js
