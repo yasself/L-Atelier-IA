@@ -20,7 +20,7 @@ const MATERIAU_TEXTURE = {
   chevre: 'goat leather, tight pebbled grain with natural resilience and character',
   cuir_perfore: 'perforated brogue leather, decorative punch-hole patterns over fine grain',
   cuir_bicolore: 'two-tone leather, contrasting color panels with clean transition seams',
-  cuir_cire: 'pull-up waxed leather, rich oily surface that shifts color with movement',
+  cuir_cire: 'patent leather, high-gloss mirror finish, lacquered surface with deep reflections',
   cuir_waterproof: 'DWR-treated waterproof leather, smooth hydrophobic surface with sealed grain',
   pu: 'polyurethane synthetic, smooth uniform surface mimicking leather grain',
   microfibre: 'microfiber material, fine uniform texture with breathable finish',

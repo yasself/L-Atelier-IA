@@ -102,7 +102,7 @@ export const materiaux = {
       certification: 'LWG',
     },
     cuir_cire: {
-      label: 'Cuir ciré (pull-up)',
+      label: 'Cuir Verni',
       epaisseur: { min: 1.2, max: 1.8, unite: 'mm' },
       usages: ['tige'],
       segments: ['femme', 'homme'],
