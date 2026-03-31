@@ -10,9 +10,9 @@ export default function Dashboard() {
   const { activeView } = useAtelierStore()
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-blanc-warm">
       <Sidebar />
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0 overflow-y-auto">
         <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
           {activeView === 'generator' && <Generator />}
           {activeView === 'history' && <HistoryView />}
