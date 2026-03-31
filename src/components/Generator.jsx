@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Wand2, RotateCcw, Save, Baby, Footprints, Sparkles, UserRound } from 'lucide-react'
 import useAtelierStore from '../store/useAtelierStore'
-import { getSegment, getSegmentsList, TYPES_CHAUSSURES } from '../data/segments'
+import { getSegment, getSegmentsList, TYPES_CHAUSSURES, COULEURS, STYLES, FINITIONS, HAUTEURS_TALON, FERMETURES } from '../data/segments'
 import { enrichirProduit } from '../services/enrichmentService'
 import { genererPromptImage, buildViewPrompts } from '../services/promptBuilder'
 import { generateAllViews } from '../services/imageService'
@@ -13,9 +13,6 @@ import SourcingModule from './SourcingModule'
 import RenderGallery from './RenderGallery'
 
 const SEGMENT_ICONS = { bebe: Baby, enfant: Footprints, femme: Sparkles, homme: UserRound }
-
-const COULEURS = ['Noir', 'Marron', 'Cognac', 'Tan', 'Bordeaux', 'Marine', 'Blanc', 'Beige', 'Gris', 'Camel', 'Kaki']
-const STYLES = ['Classique', 'Sportif', 'Casual', 'Élégant', 'Bohème', 'Minimaliste', 'Urbain']
 
 const selectClass =
   'w-full px-3 py-2 border border-border rounded-lg text-sm bg-blanc focus:outline-none focus:border-or focus:ring-1 focus:ring-or'
@@ -255,6 +252,55 @@ export default function Generator() {
               <option value="">Sélectionner...</option>
               {STYLES.map((s) => (
                 <option key={s} value={s.toLowerCase()}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Finition */}
+          <div>
+            <label className={labelClass}>Finition</label>
+            <select
+              value={config.finitions}
+              onChange={(e) => setConfig({ finitions: e.target.value })}
+              className={selectClass}
+            >
+              <option value="">Sélectionner...</option>
+              {FINITIONS.map((f) => (
+                <option key={f} value={f.toLowerCase()}>{f}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Hauteur de talon — Femme et Homme uniquement */}
+          {(segment === 'femme' || segment === 'homme') && (
+            <div>
+              <label className={labelClass}>Hauteur de talon</label>
+              <select
+                value={config.hauteur_talon || ''}
+                onChange={(e) => setConfig({ hauteur_talon: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">Sélectionner...</option>
+                {HAUTEURS_TALON
+                  .filter((h) => segment !== 'homme' || h.max <= 45)
+                  .map((h) => (
+                    <option key={h.id} value={h.id}>{h.label}</option>
+                  ))}
+              </select>
+            </div>
+          )}
+
+          {/* Fermeture — filtrée par segment */}
+          <div>
+            <label className={labelClass}>Fermeture</label>
+            <select
+              value={config.fermeture || ''}
+              onChange={(e) => setConfig({ fermeture: e.target.value })}
+              className={selectClass}
+            >
+              <option value="">Sélectionner...</option>
+              {(FERMETURES[segment] || []).map((f) => (
+                <option key={f} value={f.toLowerCase()}>{f}</option>
               ))}
             </select>
           </div>
