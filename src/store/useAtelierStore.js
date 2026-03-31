@@ -76,6 +76,27 @@ const useAtelierStore = create((set, get) => ({
   prixEstime: null,
   setPrixEstime: (prix) => set({ prixEstime: prix }),
 
+  // Render state (5 vues × 2 moteurs)
+  renderResults: [],
+  renderStatus: 'idle', // 'idle' | 'generating' | 'partial' | 'complete' | 'error'
+  totalRenderCost: 0,
+  setRenderResults: (results) => set({ renderResults: results }),
+  updateSingleRender: (renderResult) => set((state) => {
+    const existing = state.renderResults.filter(
+      (r) => !(r.view_id === renderResult.view_id && r.engine === renderResult.engine)
+    )
+    const updated = [...existing, renderResult]
+    const hasPartial = updated.some((r) => r.status === 'success')
+    return {
+      renderResults: updated,
+      renderStatus: hasPartial ? 'partial' : state.renderStatus,
+      totalRenderCost: updated.reduce((sum, r) => sum + (r.cost_usd || 0), 0),
+    }
+  }),
+  setRenderStatus: (status) => set({ renderStatus: status }),
+  addRenderCost: (cost) => set((state) => ({ totalRenderCost: state.totalRenderCost + cost })),
+  resetRenders: () => set({ renderResults: [], renderStatus: 'idle', totalRenderCost: 0 }),
+
   // Reset all
   reset: () => set({
     segment: 'femme',
@@ -100,6 +121,9 @@ const useAtelierStore = create((set, get) => ({
     loading: false,
     isGenerating: false,
     prixEstime: null,
+    renderResults: [],
+    renderStatus: 'idle',
+    totalRenderCost: 0,
   }),
 }))
 
