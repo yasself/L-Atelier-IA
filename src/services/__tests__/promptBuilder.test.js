@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildViewPrompts,
+  buildFluxPrompt,
   genererPromptImage,
   genererPromptDescription,
   genererVariations,
@@ -118,6 +119,48 @@ describe('promptBuilder', () => {
       const result = buildViewPrompts(mockSpecs)
       const main = result.find(v => v.view_id === 'three_quarter')
       expect(main.positive).toContain('noir')
+    })
+
+    it('each view should have flux_optimized field', () => {
+      const result = buildViewPrompts(mockSpecs)
+      for (const view of result) {
+        expect(view.flux_optimized).toBeDefined()
+        expect(typeof view.flux_optimized).toBe('string')
+        expect(view.flux_optimized.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('flux_optimized should contain texture terms', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const main = result.find(v => v.view_id === 'three_quarter')
+      expect(main.flux_optimized).toContain('photorealistic product shot')
+      expect(main.flux_optimized).toContain('texture highly detailed')
+      expect(main.flux_optimized).toContain('sharp focus')
+    })
+  })
+
+  describe('buildFluxPrompt', () => {
+    it('should include texture prefix and 8k sharp focus', () => {
+      const result = buildFluxPrompt('test base prompt', 'vachette')
+      expect(result).toContain('photorealistic product shot')
+      expect(result).toContain('visible grain pattern')
+      expect(result).toContain('specular highlights on leather surface')
+      expect(result).toContain('8k, sharp focus')
+    })
+
+    it('should include material-specific texture', () => {
+      const result = buildFluxPrompt('test', 'cordovan')
+      expect(result).toContain('shell cordovan')
+    })
+
+    it('should fallback to leather for unknown material', () => {
+      const result = buildFluxPrompt('test', 'unknown_material')
+      expect(result).toContain('leather texture highly detailed')
+    })
+
+    it('should include the base prompt', () => {
+      const result = buildFluxPrompt('my shoe description here', 'veau')
+      expect(result).toContain('my shoe description here')
     })
   })
 

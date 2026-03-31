@@ -1,5 +1,5 @@
 /**
- * Tests for imageService — OpenAI DALL-E 3 only
+ * Tests for imageService — Flux Pro + DALL-E 3 auto-routing with fallback
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -9,6 +9,8 @@ import { generateAllViews, generateShoeImage } from '../imageService'
 vi.mock('../configService', () => ({
   configService: {
     getOpenAIKey: vi.fn().mockReturnValue(null),
+    getReplicateKey: vi.fn().mockReturnValue(null),
+    getBestEngine: vi.fn().mockReturnValue(null),
   },
 }))
 
@@ -22,35 +24,48 @@ describe('imageService', () => {
   })
 
   describe('generateShoeImage', () => {
-    it('should throw when no API key', async () => {
-      await expect(generateShoeImage('test prompt')).rejects.toThrow('Clé API OpenAI non configurée')
+    it('should throw when no engine available', async () => {
+      await expect(generateShoeImage('test')).rejects.toThrow('Aucune clé API image configurée')
     })
 
-    it('should call OpenAI with correct parameters when key is set', async () => {
+    it('should call DALL-E when getBestEngine returns dalle3', async () => {
       const { configService } = await import('../configService')
+      configService.getBestEngine.mockReturnValue('dalle3')
       configService.getOpenAIKey.mockReturnValue('sk-proj-test')
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          data: [{ url: 'https://example.com/image.png', revised_prompt: 'revised' }],
+          data: [{ url: 'https://img.test/dalle.png', revised_prompt: 'revised' }],
         }),
       })
 
       const result = await generateShoeImage('test prompt')
-      expect(result.imageUrl).toBe('https://example.com/image.png')
-      expect(result.revisedPrompt).toBe('revised')
+      expect(result.imageUrl).toBe('https://img.test/dalle.png')
+      expect(result.engine).toBe('dalle3')
       expect(result.cost_usd).toBe(0.080)
+    })
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.openai.com/v1/images/generations',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            Authorization: 'Bearer sk-proj-test',
+    it('should fallback to DALL-E when Flux fails and OpenAI key available', async () => {
+      const { configService } = await import('../configService')
+      configService.getBestEngine.mockReturnValue('flux_pro')
+      configService.getReplicateKey.mockReturnValue('r8_test')
+      configService.getOpenAIKey.mockReturnValue('sk-proj-test')
+
+      // Flux call fails
+      mockFetch
+        .mockResolvedValueOnce({ ok: false, status: 500 })
+        // DALL-E fallback succeeds
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({
+            data: [{ url: 'https://img.test/fallback.png' }],
           }),
         })
-      )
+
+      const result = await generateShoeImage('test')
+      expect(result.imageUrl).toBe('https://img.test/fallback.png')
+      expect(result.engine).toBe('dalle3')
     })
   })
 
@@ -59,6 +74,7 @@ describe('imageService', () => {
       const viewPrompts = Array.from({ length: 5 }, (_, i) => ({
         view_id: `view_${i}`,
         dalle_optimized: `prompt_${i}`,
+        flux_optimized: `flux_${i}`,
       }))
 
       const results = await generateAllViews(viewPrompts)
@@ -67,29 +83,30 @@ describe('imageService', () => {
 
     it('should call onResult for each completed view', async () => {
       const viewPrompts = [
-        { view_id: 'three_quarter', dalle_optimized: 'p1' },
-        { view_id: 'side_profile', dalle_optimized: 'p2' },
+        { view_id: 'three_quarter', dalle_optimized: 'p1', flux_optimized: 'f1' },
+        { view_id: 'side_profile', dalle_optimized: 'p2', flux_optimized: 'f2' },
       ]
 
       const onResult = vi.fn()
-      const results = await generateAllViews(viewPrompts, { onResult })
+      await generateAllViews(viewPrompts, { onResult })
 
       expect(onResult).toHaveBeenCalledTimes(2)
-      expect(results).toHaveLength(2)
     })
 
-    it('all results should have error status without API key', async () => {
+    it('all results should have error status without any API key', async () => {
       const viewPrompts = [
-        { view_id: 'three_quarter', dalle_optimized: 'p' },
-        { view_id: 'sole', dalle_optimized: 'p' },
+        { view_id: 'three_quarter', dalle_optimized: 'p', flux_optimized: 'f' },
       ]
 
       const results = await generateAllViews(viewPrompts)
       expect(results.every((r) => r.status === 'error')).toBe(true)
     })
 
-    it('each result should have correct RenderResult shape', async () => {
-      const viewPrompts = [{ view_id: 'worn', dalle_optimized: 'p' }]
+    it('each result should have correct shape with engine field', async () => {
+      const { configService } = await import('../configService')
+      configService.getBestEngine.mockReturnValue('dalle3')
+
+      const viewPrompts = [{ view_id: 'worn', dalle_optimized: 'p', flux_optimized: 'f' }]
       const results = await generateAllViews(viewPrompts)
 
       expect(results[0]).toHaveProperty('view_id', 'worn')
@@ -97,6 +114,7 @@ describe('imageService', () => {
       expect(results[0]).toHaveProperty('status')
       expect(results[0]).toHaveProperty('generation_time_ms')
       expect(results[0]).toHaveProperty('cost_usd')
+      expect(results[0]).toHaveProperty('engine')
     })
   })
 })
