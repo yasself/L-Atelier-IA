@@ -116,13 +116,16 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
   const montage = data.montage_recommande || config.montage || ''
   const couleur = config.couleur || ''
   const finitions = config.finitions || ''
+  const style = config.style || ''
+  const hauteurTalon = config.hauteur_talon || ''
+  const fermeture = config.fermeture || ''
 
   // Lookup prompt_descriptor from INTENTION_MAP
   const intentionMatch = INTENTION_MAP[type] || data.intention
   const promptDescriptor = intentionMatch?.prompt_descriptor || null
 
   // Build the 6 layers
-  const layer1 = buildSilhouetteLayer(type, segment, promptDescriptor)
+  const layer1 = buildSilhouetteLayer(type, segment, promptDescriptor, hauteurTalon)
   const layer2 = buildMaterialLayer(materiau, couleur)
   const layer3 = buildConstructionLayer(montage)
   const layer6 = QUALITY_LAYER
@@ -133,7 +136,9 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
     const layer5 = viewCfg.include_macro ? MACRO_DETAILS : ''
 
     const layers = [layer1, layer2, layer3, layer4, layer5, layer6].filter(Boolean)
-    if (finitions) layers.splice(3, 0, `finishing details: ${finitions}`)
+    if (finitions) layers.splice(3, 0, `${finitions} finish`)
+    if (style) layers.splice(1, 0, `${style} style`)
+    if (fermeture) layers.splice(3, 0, `${fermeture} closure`)
 
     const positive = layers.join(', ')
 
@@ -151,14 +156,14 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
 
 // --- Layer builders ---
 
-function buildSilhouetteLayer(type, segment, promptDescriptor) {
+function buildSilhouetteLayer(type, segment, promptDescriptor, hauteurTalon) {
   const segLabel = SEGMENT_EN[segment] || segment
-  // Use precise prompt_descriptor if available, otherwise generic
+  const heelStr = hauteurTalon ? `, ${hauteurTalon.replace(/_/g, ' ')} heel` : ''
   if (promptDescriptor) {
-    return `${promptDescriptor}, ${segLabel} footwear`
+    return `${promptDescriptor}${heelStr}, ${segLabel} footwear`
   }
   const shoeType = type || 'shoe'
-  return `${shoeType} shoe, ${segLabel} footwear`
+  return `${shoeType} shoe${heelStr}, ${segLabel} footwear`
 }
 
 function buildMaterialLayer(materiau, couleur) {
