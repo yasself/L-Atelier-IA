@@ -11,6 +11,20 @@ const VIEW_LABELS = {
   worn: 'Portée',
 }
 
+const ENGINE_DISPLAY = {
+  flux_pro: { label: 'Flux Pro', bg: 'bg-purple-100', text: 'text-purple-700' },
+  dalle3: { label: 'DALL-E 3', bg: 'bg-blue-100', text: 'text-blue-700' },
+}
+
+function EngineBadge({ engine }) {
+  const style = ENGINE_DISPLAY[engine] || ENGINE_DISPLAY.dalle3
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded font-medium ${style.bg} ${style.text}`}>
+      {style.label}
+    </span>
+  )
+}
+
 export default function RenderGallery() {
   const { renderResults, renderStatus, totalRenderCost } = useAtelierStore()
   const [lightbox, setLightbox] = useState(null)
@@ -24,7 +38,7 @@ export default function RenderGallery() {
         className="bg-blanc rounded-xl border border-border p-12 text-center shadow-sm"
       >
         <p className="text-gray-400 font-serif text-lg">Décrivez votre modèle pour générer les rendus</p>
-        <p className="text-gray-300 text-sm mt-2">5 vues haute fidélité via DALL-E 3</p>
+        <p className="text-gray-300 text-sm mt-2">5 vues haute fidélité</p>
       </motion.div>
     )
   }
@@ -35,11 +49,15 @@ export default function RenderGallery() {
   const totalExpected = 5
   const progress = Math.round((completedCount / totalExpected) * 100)
 
+  // Detect which engine was actually used (from first successful result)
+  const usedEngine = renderResults.find((r) => r.engine)?.engine
+
   const openLightbox = (result) => {
     if (result?.imageUrl) {
       setLightbox({
         url: result.imageUrl,
         viewId: result.view_id,
+        engine: result.engine,
         time: result.generation_time_ms,
       })
     }
@@ -52,11 +70,14 @@ export default function RenderGallery() {
       transition={{ duration: 0.35 }}
       className="space-y-4"
     >
-      {/* Progress bar */}
+      {/* Progress bar + engine indicator */}
       {(renderStatus === 'generating' || renderStatus === 'partial') && (
         <div className="bg-blanc rounded-xl border border-border p-4 shadow-sm">
           <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-            <span>Génération en cours... {completedCount}/{totalExpected}</span>
+            <span className="flex items-center gap-2">
+              Génération en cours... {completedCount}/{totalExpected}
+              {usedEngine && <EngineBadge engine={usedEngine} />}
+            </span>
             <span className="flex items-center gap-1">
               <DollarSign size={11} />
               ${totalRenderCost.toFixed(3)} USD
@@ -98,6 +119,7 @@ export default function RenderGallery() {
               Coût total : ${totalRenderCost.toFixed(3)} USD
             </span>
             <span>{completedCount} images générées</span>
+            {usedEngine && <EngineBadge engine={usedEngine} />}
           </div>
           <button className="flex items-center gap-2 px-4 py-2 bg-or text-noir text-sm font-medium rounded-lg hover:bg-or-light transition-colors">
             <Download size={14} />
@@ -118,7 +140,7 @@ export default function RenderGallery() {
           >
             <div className="absolute top-4 left-4 right-16 flex items-center gap-3">
               <span className="text-white font-serif text-sm">{VIEW_LABELS[lightbox.viewId] || lightbox.viewId}</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-blue-500 text-white">DALL-E 3</span>
+              <EngineBadge engine={lightbox.engine} />
               <span className="text-white/60 text-xs flex items-center gap-1">
                 <Clock size={11} />
                 {(lightbox.time / 1000).toFixed(1)}s
@@ -147,11 +169,15 @@ function ViewCell({ viewId, result, onZoom, large }) {
   const hasImage = result?.status === 'success' && result.imageUrl
   const isMacro = viewId === 'macro_detail'
 
+  // Dynamic engine badge from actual result
+  const engineId = result?.engine
+
   return (
     <div className={`bg-blanc rounded-xl border border-border shadow-sm overflow-hidden ${large ? 'min-h-[300px]' : 'min-h-[180px]'}`}>
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
-        <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">DALL-E 3</span>
+        {engineId && <EngineBadge engine={engineId} />}
+        {!engineId && isLoading && <span className="text-xs text-gray-300">en attente...</span>}
       </div>
 
       <div className={`relative ${large ? 'h-[280px]' : 'h-[160px]'}`}>
@@ -178,6 +204,7 @@ function ViewCell({ viewId, result, onZoom, large }) {
 
       {result && result.status === 'success' && (
         <div className="flex items-center gap-2 px-3 py-1.5 border-t border-gray-50 text-xs text-gray-400">
+          <EngineBadge engine={result.engine} />
           <span className="flex items-center gap-1"><Clock size={10} />{(result.generation_time_ms / 1000).toFixed(1)}s</span>
           <span className="flex items-center gap-1"><DollarSign size={10} />{(result.cost_usd * 100).toFixed(1)}¢</span>
         </div>
