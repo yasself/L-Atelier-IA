@@ -284,4 +284,152 @@ describe('Integration Tests — L\'Atelier IA', () => {
       }
     })
   })
+
+  // ========= PHASE 4 — 4 SCÉNARIOS COMPLETS =========
+
+  describe('Scénario 1 — Workflow Femme/Escarpin complet', () => {
+    it('should resolve escarpin soirée with vernis and blake montage', async () => {
+      const result = await enrichirProduit({
+        segment: 'femme',
+        type_chaussure: 'escarpin',
+        inspiration: 'escarpin soirée vernis talon aiguille',
+      })
+
+      expect(result.source).toBe('statique')
+      expect(result.confiance).toBeGreaterThanOrEqual(80)
+      expect(result.data).toBeDefined()
+      expect(result.data.intention).toBeDefined()
+      expect(result.data.intention.material).toBeDefined()
+      // escarpin → chevreau, finition vernis
+      expect(result.data.intention.finition).toBe('vernis')
+    })
+
+    it('should have correct segment constraints for femme escarpin', () => {
+      const femme = segments.femme
+      expect(femme.contraintes.hauteur_talon_max_mm).toBe(120)
+      expect(femme.contraintes.cambrion_obligatoire_talon_40mm).toBe(true)
+      expect(femme.contraintes.cambrion_types).toContain('fibre carbone')
+    })
+
+    it('should have prix_mad gamme for femme', () => {
+      const femme = segments.femme
+      expect(femme.gamme_prix_mad).toBeDefined()
+      expect(femme.gamme_prix_mad.entree).toBeDefined()
+      expect(femme.gamme_prix_mad.premium).toBeDefined()
+    })
+  })
+
+  describe('Scénario 2 — Contrainte Bébé absolue (10 inspirations)', () => {
+    const bebeInspirations = [
+      'confortable', 'cuir doux', 'chausson', 'premiers pas',
+      'souple', 'naturel', 'coton', 'été', 'hiver', 'sport',
+    ]
+
+    it('bebe segment must forbid chrome tanning', () => {
+      expect(reglesParSegment.bebe.substances_interdites).toContain('chrome VI')
+      expect(segments.bebe.contraintes.tannage_chrome_interdit).toBe(true)
+    })
+
+    it('bebe segment must forbid blake and goodyear montages', () => {
+      expect(reglesParSegment.bebe.montages_autorises).not.toContain('cousu_blake')
+      expect(reglesParSegment.bebe.montages_autorises).not.toContain('cousu_goodyear')
+    })
+
+    it('bebe segment must have zero heel', () => {
+      expect(reglesParSegment.bebe.hauteur_talon_max).toBe(0)
+      expect(segments.bebe.contraintes.hauteur_talon_max_mm).toBe(0)
+    })
+
+    for (const insp of bebeInspirations) {
+      it(`bebe + "${insp}" should never recommend chrome material or forbidden montage`, async () => {
+        const result = await enrichirProduit({
+          segment: 'bebe',
+          inspiration: insp,
+        })
+
+        // Check intention material does not contain chrome
+        if (result.data?.intention?.material) {
+          expect(result.data.intention.material.toLowerCase()).not.toContain('chrome')
+        }
+        if (result.data?.materiau_principal) {
+          expect(result.data.materiau_principal.toLowerCase()).not.toContain('chrome')
+        }
+
+        // Check montage is not blake/goodyear
+        if (result.data?.intention?.montage) {
+          expect(result.data.intention.montage).not.toBe('cousu_blake')
+          expect(result.data.intention.montage).not.toBe('cousu_goodyear')
+        }
+        if (result.data?.montage_recommande) {
+          expect(result.data.montage_recommande).not.toBe('cousu_blake')
+          expect(result.data.montage_recommande).not.toBe('cousu_goodyear')
+        }
+      })
+    }
+  })
+
+  describe('Scénario 3 — Fallback erreur API', () => {
+    it('should fallback gracefully when no API key is set', async () => {
+      const result = await enrichirProduit({
+        segment: 'femme',
+      })
+
+      // No type_chaussure → low base confidence
+      // With expanded femme montages/semelles, confidence might be high enough for static
+      expect(result).toBeDefined()
+      expect(result.data).toBeDefined()
+      expect(result.source).toBeDefined()
+      // Source should be 'statique' or 'statique (fallback)' — never crash
+      expect(result.source).toMatch(/statique/)
+    })
+
+    it('should never throw even with minimal input', async () => {
+      const result = await enrichirProduit({ segment: 'homme' })
+      expect(result).toBeDefined()
+      expect(result.confiance).toBeGreaterThan(0)
+    })
+
+    it('should fallback for completely unknown segment', async () => {
+      const result = await enrichirProduit({ segment: 'alien' })
+      expect(result).toBeDefined()
+      // Unknown segment → confiance 0, but should not throw
+      expect(result.source).toMatch(/statique/)
+    })
+  })
+
+  describe('Scénario 4 — Historique bout en bout', () => {
+    beforeEach(() => {
+      historyService.clearAll()
+    })
+
+    it('should save, retrieve in LIFO order, delete, and clear', () => {
+      const entry1 = historyService.create({ config: { segment: 'femme', type_chaussure: 'escarpin' } })
+      const entry2 = historyService.create({ config: { segment: 'homme', type_chaussure: 'derby' } })
+
+      // LIFO: entry2 should be first
+      const all = historyService.getAll()
+      expect(all).toHaveLength(2)
+      expect(all[0].id).toBe(entry2.id)
+      expect(all[1].id).toBe(entry1.id)
+
+      // Delete entry1
+      historyService.remove(entry1.id)
+      const afterDelete = historyService.getAll()
+      expect(afterDelete).toHaveLength(1)
+      expect(afterDelete.find((e) => e.id === entry1.id)).toBeUndefined()
+      expect(afterDelete[0].id).toBe(entry2.id)
+
+      // Clear all
+      historyService.clearAll()
+      const afterClear = historyService.getAll()
+      expect(afterClear).toHaveLength(0)
+    })
+
+    it('should maintain correct timestamps', () => {
+      const entry = historyService.create({ test: true })
+      expect(entry.createdAt).toBeDefined()
+      expect(entry.updatedAt).toBeDefined()
+      expect(new Date(entry.createdAt).getTime()).toBeGreaterThan(0)
+    })
+  })
 })
