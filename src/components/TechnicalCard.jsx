@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Shield, Layers, CheckCircle2, XCircle, FileText, Ruler, Footprints, Wrench, Sparkles, Heart } from 'lucide-react'
 import { getSegment } from '../data/segments'
+import { getLabelFr } from '../data/specs_engine'
 import useAtelierStore from '../store/useAtelierStore'
 
 function generateRefNumber() {
@@ -132,11 +133,11 @@ export default function TechnicalCard({ segment, config, enrichment }) {
 
         {/* BOM */}
         <Section icon={Layers} title="Nomenclature (BOM)">
-          <DataRow icon={Layers} label="Matériau tige" value={config.materiau_tige || '—'} />
-          <DataRow icon={Footprints} label="Semelle" value={config.semelle_type?.replace(/_/g, ' ') || '—'} />
-          <DataRow icon={Wrench} label="Montage" value={LABEL_MONTAGE[config.montage] || config.montage || '—'} />
-          <DataRow icon={Sparkles} label="Finitions" value={config.finitions || '—'} />
-          <DataRow icon={Heart} label="Doublure" value={(segConfig.materiaux_recommandes?.doublure || []).join(', ') || '—'} />
+          <DataRow icon={Layers} label="Matériau tige" value={getLabelFr(config.materiau_tige) || '—'} />
+          <DataRow icon={Footprints} label="Semelle" value={getLabelFr(config.semelle_type) || '—'} />
+          <DataRow icon={Wrench} label="Montage" value={LABEL_MONTAGE[config.montage] || getLabelFr(config.montage) || '—'} />
+          <DataRow icon={Sparkles} label="Finitions" value={config.finitions || 'Non spécifiée'} />
+          <DataRow icon={Heart} label="Doublure" value={(segConfig.materiaux_recommandes?.doublure || []).map(d => getLabelFr(d) || d).join(', ') || '—'} />
           <DataRow label="Fermetures" value={contraintes.fermetures.join(', ')} />
         </Section>
 
