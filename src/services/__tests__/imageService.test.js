@@ -19,8 +19,12 @@ const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
 describe('imageService', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+    const { configService } = await import('../configService')
+    configService.getOpenAIKey.mockReturnValue(null)
+    configService.getReplicateKey.mockReturnValue(null)
+    configService.getBestEngine.mockReturnValue(null)
   })
 
   describe('generateShoeImage', () => {

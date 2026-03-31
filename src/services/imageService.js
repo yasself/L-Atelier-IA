@@ -152,11 +152,28 @@ async function generateWithDalle(prompt, options = {}) {
 }
 
 /**
- * Génère les 5 vues en parallèle — moteur auto
+ * Génère les 5 vues — séquentiel pour Flux Pro (rate limit), parallèle pour DALL-E 3
  */
 export async function generateAllViews(viewPrompts, options = {}) {
   const onResult = options.onResult || (() => {})
+  const engine = configService.getBestEngine()
 
+  // Flux Pro: sequential with 3s delay between views to avoid rate limiting
+  if (engine === 'flux_pro') {
+    const results = []
+    for (const vp of viewPrompts) {
+      const result = await generateSingleView(vp, options)
+      onResult(result)
+      results.push(result)
+      // 3s delay between Flux calls (skip after last)
+      if (vp !== viewPrompts[viewPrompts.length - 1]) {
+        await sleep(3000)
+      }
+    }
+    return results
+  }
+
+  // DALL-E 3: parallel via Promise.allSettled
   const tasks = viewPrompts.map((vp) =>
     generateSingleView(vp, options).then((result) => {
       onResult(result)
@@ -174,7 +191,7 @@ export async function generateAllViews(viewPrompts, options = {}) {
       status: 'error',
       generation_time_ms: 0,
       cost_usd: 0,
-      engine: configService.getBestEngine() || 'unknown',
+      engine: engine || 'unknown',
       error: s.reason?.message || 'Unknown error',
     }
   })
