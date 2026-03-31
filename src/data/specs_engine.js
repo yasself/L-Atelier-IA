@@ -614,28 +614,28 @@ export const reglesParSegment = {
  */
 export const INTENTION_MAP = {
   // --- STYLES ---
-  mocassin: { semelle: 'cuir_semelle', montage: 'ago', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.92 },
-  loafer: { semelle: 'cuir_semelle', montage: 'ago', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.92 },
-  derby: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'vachette', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.95 },
-  richelieu: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.95 },
-  oxford: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.95 },
-  chelsea: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.93 },
-  bottine: { semelle: 'tr', montage: 'cousu_blake', material: 'vachette', finition: 'cire', doublure: 'microfibre_respirante', confidence: 0.88 },
-  botte: { semelle: 'caoutchouc', montage: 'colle', material: 'vachette', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85 },
-  escarpin: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.90 },
-  ballerine: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'cire', doublure: 'microfibre_respirante', confidence: 0.88 },
-  sandale: { semelle: 'eva', montage: 'colle', material: 'vachette', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.85 },
-  sneaker: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.92 },
-  basket: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.90 },
-  trail: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.88 },
-  randonnee: { semelle: 'vibram', montage: 'norwegian_welt', material: 'cuir_gras', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85 },
-  chausson: { semelle: 'eva', montage: 'cousu_strobel', material: 'agneau', finition: 'naturel', doublure: 'textile_coton_bio', confidence: 0.92 },
-  pantoufle: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'naturel', doublure: 'fourrure_synthetique', confidence: 0.85 },
-  mule: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.82 },
-  monk: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.90 },
-  brogue: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cuir_perfore', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.93 },
-  desert_boot: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'nubuck', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.88 },
-  chukka: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.85 },
+  mocassin: { semelle: 'cuir_semelle', montage: 'ago', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.92, prompt_descriptor: 'loafer shoe, flat heel, slip-on, moccasin construction' },
+  loafer: { semelle: 'cuir_semelle', montage: 'ago', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.92, prompt_descriptor: 'loafer shoe, flat heel, slip-on, moccasin construction' },
+  derby: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'vachette', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.95, prompt_descriptor: 'oxford derby shoe, open lacing, leather formal shoe, round toe' },
+  richelieu: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.95, prompt_descriptor: 'oxford shoe, closed lacing, cap toe, leather formal dress shoe' },
+  oxford: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.95, prompt_descriptor: 'oxford shoe, closed lacing, cap toe, leather formal dress shoe' },
+  chelsea: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.93, prompt_descriptor: 'chelsea boot, elastic side panel, ankle boot, pull-on, round toe' },
+  bottine: { semelle: 'tr', montage: 'cousu_blake', material: 'vachette', finition: 'cire', doublure: 'microfibre_respirante', confidence: 0.88, prompt_descriptor: 'ankle boot, lace-up or zip, low to mid heel, leather boot' },
+  botte: { semelle: 'caoutchouc', montage: 'colle', material: 'vachette', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85, prompt_descriptor: 'tall boot, knee-high, leather riding boot, low heel' },
+  escarpin: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.90, prompt_descriptor: 'stiletto heel pump, needle-thin high heel, pointed toe, women\'s formal shoe' },
+  ballerine: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'cire', doublure: 'microfibre_respirante', confidence: 0.88, prompt_descriptor: 'ballet flat shoe, round toe, very low heel, women\'s flat, bow detail' },
+  sandale: { semelle: 'eva', montage: 'colle', material: 'vachette', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.85, prompt_descriptor: 'open toe sandal, strappy, flat or low heel, summer shoe' },
+  sneaker: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.92, prompt_descriptor: 'athletic sneaker, cushioned sole, lace-up, sporty silhouette' },
+  basket: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.90, prompt_descriptor: 'casual sneaker, thick sole, lace-up, streetwear style' },
+  trail: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.88, prompt_descriptor: 'trail running shoe, aggressive tread sole, waterproof, outdoor' },
+  randonnee: { semelle: 'vibram', montage: 'norwegian_welt', material: 'cuir_gras', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85, prompt_descriptor: 'hiking boot, high ankle, heavy tread sole, mountain boot' },
+  chausson: { semelle: 'eva', montage: 'cousu_strobel', material: 'agneau', finition: 'naturel', doublure: 'textile_coton_bio', confidence: 0.92, prompt_descriptor: 'baby bootie, soft sole, rounded shape, infant first shoe' },
+  pantoufle: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'naturel', doublure: 'fourrure_synthetique', confidence: 0.85, prompt_descriptor: 'house slipper, soft padded sole, cozy indoor shoe' },
+  mule: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.82, prompt_descriptor: 'mule shoe, open back, slip-on, mid to high heel' },
+  monk: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.90, prompt_descriptor: 'monk strap shoe, buckle closure, no laces, leather dress shoe' },
+  brogue: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cuir_perfore', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.93, prompt_descriptor: 'brogue shoe, decorative perforations, wingtip, medallion cap toe' },
+  desert_boot: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'nubuck', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.88, prompt_descriptor: 'desert boot, suede ankle boot, crepe sole, 2-3 eyelets' },
+  chukka: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.85, prompt_descriptor: 'chukka boot, leather ankle boot, 2 eyelets, round toe' },
   // --- OCCASIONS ---
   mariage: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.88 },
   soiree: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.85 },
@@ -730,4 +730,24 @@ export function validerConfiguration(segment, config) {
   }
 
   return { valide: erreurs.length === 0, erreurs }
+}
+
+/**
+ * Retourne le label français lisible d'un matériau, montage ou semelle par son id
+ * Cherche dans materiaux, montages, semelles, doublures, renforts, fermetures, ornements
+ */
+export function getLabelFr(id) {
+  if (!id) return null
+  // Materiaux
+  for (const cat of Object.values(materiaux)) {
+    if (cat[id]) return cat[id].label
+  }
+  // Montages
+  if (montages[id]) return montages[id].label
+  // Semelles
+  if (semelles.types[id]) return semelles.types[id].label
+  // Doublures
+  if (typeof doublures !== 'undefined' && doublures[id]) return doublures[id].label
+  // Fallback: capitalize id
+  return id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
