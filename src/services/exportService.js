@@ -1,6 +1,6 @@
 /**
  * Service d'export PDF avec les 5 vues
- * Page 1 : vue Flux 3/4 pleine largeur + infos techniques
+ * Page 1 : vue 3/4 pleine largeur + infos techniques
  * Page 2 : grille 2×2 des 4 autres vues
  */
 
@@ -14,9 +14,9 @@
  * @returns {{ pages: Array, metadata: object }}
  */
 export function prepareExportData({ specs, config, renderResults, viewPrompts }) {
-  const fluxResults = (renderResults || []).filter((r) => r.engine === 'flux' && r.status === 'success')
-  const mainView = fluxResults.find((r) => r.view_id === 'three_quarter')
-  const otherViews = fluxResults.filter((r) => r.view_id !== 'three_quarter')
+  const successResults = (renderResults || []).filter((r) => r.status === 'success')
+  const mainView = successResults.find((r) => r.view_id === 'three_quarter')
+  const otherViews = successResults.filter((r) => r.view_id !== 'three_quarter')
 
   const page1 = {
     type: 'main',
@@ -38,7 +38,7 @@ export function prepareExportData({ specs, config, renderResults, viewPrompts })
     type: 'gallery',
     title: 'Vues complémentaires',
     views: ['side_profile', 'macro_detail', 'sole', 'worn'].map((viewId) => {
-      const result = fluxResults.find((r) => r.view_id === viewId)
+      const result = successResults.find((r) => r.view_id === viewId)
       const vprompt = (viewPrompts || []).find((v) => v.view_id === viewId)
       return {
         view_id: viewId,
@@ -52,7 +52,7 @@ export function prepareExportData({ specs, config, renderResults, viewPrompts })
     pages: [page1, page2],
     metadata: {
       generated_at: new Date().toISOString(),
-      total_views: fluxResults.length,
+      total_views: successResults.length,
       total_cost_usd: renderResults?.reduce((s, r) => s + (r.cost_usd || 0), 0) || 0,
     },
   }

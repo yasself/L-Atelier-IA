@@ -1,6 +1,6 @@
 /**
  * Générateur de prompts multi-vues pour la création d'images haute fidélité
- * Architecture en 6 couches × 5 vues × 3 moteurs (standard, Flux, DALL-E)
+ * Architecture en 6 couches × 5 vues — DALL-E 3
  */
 
 import segments from '../data/segments'
@@ -138,7 +138,6 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
       view_label: viewCfg.view_label,
       positive,
       negative: NEGATIVE_PROMPT,
-      flux_optimized: `professional photograph, photorealistic, ${positive}`,
       dalle_optimized: `Generate a photorealistic product photograph of ${positive}`,
       priority: viewCfg.priority,
     }

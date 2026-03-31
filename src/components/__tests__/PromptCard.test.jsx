@@ -148,6 +148,6 @@ describe('PromptCard', () => {
       parametres: { segment: 'Femme' },
     }
     render(<PromptCard prompt={prompt} config={{}} segment="femme" />)
-    expect(screen.getByText(/Compatible : Midjourney · DALL-E · Flux/)).toBeInTheDocument()
+    expect(screen.getByText(/Compatible : Midjourney · DALL-E 3/)).toBeInTheDocument()
   })
 })

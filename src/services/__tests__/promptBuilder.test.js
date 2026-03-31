@@ -29,7 +29,6 @@ describe('promptBuilder', () => {
         expect(view.view_label).toBeDefined()
         expect(view.positive).toBeDefined()
         expect(view.negative).toBeDefined()
-        expect(view.flux_optimized).toBeDefined()
         expect(view.dalle_optimized).toBeDefined()
         expect(view.priority).toBeDefined()
       }
@@ -49,13 +48,6 @@ describe('promptBuilder', () => {
       const result = buildViewPrompts(mockSpecs)
       const main = result.find(v => v.view_id === 'three_quarter')
       expect(main.priority).toBe(1)
-    })
-
-    it('flux_optimized should start with professional photograph', () => {
-      const result = buildViewPrompts(mockSpecs)
-      for (const view of result) {
-        expect(view.flux_optimized).toMatch(/^professional photograph, photorealistic,/)
-      }
     })
 
     it('dalle_optimized should start with Generate instruction', () => {

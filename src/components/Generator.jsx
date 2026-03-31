@@ -84,7 +84,6 @@ export default function Generator() {
       // 4. Launch image generation (parallel, progressive)
       setRenderStatus('generating')
       await generateAllViews(viewPrompts, {
-        engines: ['flux', 'dalle'],
         onResult: (result) => updateSingleRender(result),
       })
 

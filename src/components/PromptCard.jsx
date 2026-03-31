@@ -164,7 +164,7 @@ export default function PromptCard({ prompt, config, segment, enrichment }) {
 
         {/* Compatible label */}
         <p className="text-xs text-gray-400 text-center pt-1 border-t border-gray-50">
-          Compatible : Midjourney · DALL-E · Flux
+          Compatible : Midjourney · DALL-E 3
         </p>
       </div>
     </motion.div>
