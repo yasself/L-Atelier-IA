@@ -345,7 +345,7 @@ export default function Generator() {
               enrichment={currentSpecs}
             />
             <div className="space-y-6">
-              <PromptCard prompt={currentPrompt} config={config} segment={segment} />
+              <PromptCard prompt={currentPrompt} config={config} segment={segment} enrichment={currentSpecs} />
               <SourcingModule segment={segment} config={config} />
             </div>
           </div>

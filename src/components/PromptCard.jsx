@@ -5,19 +5,20 @@ import { Copy, Check, Image, ChevronDown, ChevronUp } from 'lucide-react'
 const NEGATIVE_PROMPT =
   'low quality, blurry, distorted proportions, unrealistic materials, amateur photography, poor lighting, cartoon style, 3D render, illustration'
 
-export default function PromptCard({ prompt, config, segment }) {
+export default function PromptCard({ prompt, config, segment, enrichment }) {
   const [copied, setCopied] = useState(false)
   const [negativeOpen, setNegativeOpen] = useState(false)
 
   if (!prompt) return null
 
+  const copyText = `POSITIVE:\n${prompt.prompt}\n\nNEGATIVE:\n${NEGATIVE_PROMPT}`
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(prompt.prompt)
+      await navigator.clipboard.writeText(copyText)
     } catch {
-      // Fallback for browsers without clipboard API
       const el = document.createElement('textarea')
-      el.value = prompt.prompt
+      el.value = copyText
       document.body.appendChild(el)
       el.select()
       document.execCommand('copy')
@@ -26,6 +27,11 @@ export default function PromptCard({ prompt, config, segment }) {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  // Quality score: confidence × 100, capped at 100
+  const rawScore = enrichment?.confiance ?? (prompt.parametres?.confidence ? prompt.parametres.confidence * 100 : 85)
+  const qualityScore = Math.min(100, Math.round(rawScore))
+  const scoreColor = qualityScore > 80 ? 'bg-green-500' : qualityScore >= 50 ? 'bg-or' : 'bg-red-500'
 
   // Quality indicators derived from prompt.parametres or sensible defaults
   const params = prompt.parametres || {}
@@ -115,6 +121,17 @@ export default function PromptCard({ prompt, config, segment }) {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Quality score */}
+        <div className="bg-blanc-warm rounded-lg p-3 border border-border">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Score prompt</span>
+            <span className="text-sm font-mono font-medium text-noir">{qualityScore}/100</span>
+          </div>
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${scoreColor}`} style={{ width: `${qualityScore}%` }} />
+          </div>
         </div>
 
         {/* Quality indicators */}

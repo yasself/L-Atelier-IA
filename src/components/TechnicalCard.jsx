@@ -1,7 +1,15 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Shield, Layers, CheckCircle2, XCircle, FileText, Ruler } from 'lucide-react'
+import { Shield, Layers, CheckCircle2, XCircle, FileText, Ruler, Footprints, Wrench, Sparkles, Heart } from 'lucide-react'
 import { getSegment } from '../data/segments'
 import useAtelierStore from '../store/useAtelierStore'
+
+function generateRefNumber() {
+  const d = new Date()
+  const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+  const uuid = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `ATL-${date}-${uuid}`
+}
 
 const LABEL_MONTAGE = {
   colle: 'Collé',
@@ -21,6 +29,7 @@ const SEG_BADGE_COLORS = {
 export default function TechnicalCard({ segment, config, enrichment }) {
   const { prixEstime } = useAtelierStore()
   const segConfig = getSegment(segment)
+  const refNumber = useMemo(() => generateRefNumber(), [enrichment])
 
   if (!segConfig || !enrichment) return null
 
@@ -81,7 +90,9 @@ export default function TechnicalCard({ segment, config, enrichment }) {
             {config.type_chaussure || 'Type non défini'}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="text-xs font-mono text-gray-400">{refNumber}</span>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
           <span
             className={`text-xs font-medium px-2 py-0.5 rounded-full ${SEG_BADGE_COLORS[segment] || 'bg-gray-100 text-gray-600'}`}
           >
@@ -90,6 +101,7 @@ export default function TechnicalCard({ segment, config, enrichment }) {
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sourceBadgeClass}`}>
             {sourceLabel}
           </span>
+          </div>
         </div>
       </div>
 
@@ -120,21 +132,12 @@ export default function TechnicalCard({ segment, config, enrichment }) {
 
         {/* BOM */}
         <Section icon={Layers} title="Nomenclature (BOM)">
-          <DataRow label="Matériau tige" value={config.materiau_tige || '—'} />
-          <DataRow
-            label="Montage"
-            value={LABEL_MONTAGE[config.montage] || config.montage || '—'}
-          />
-          <DataRow label="Semelle" value={config.semelle_type?.replace(/_/g, ' ') || '—'} />
-          <DataRow
-            label="Doublure"
-            value={(segConfig.materiaux_recommandes?.doublure || []).join(', ') || '—'}
-          />
-          <DataRow label="Finitions" value={config.finitions || '—'} />
-          <DataRow
-            label="Fermetures"
-            value={contraintes.fermetures.join(', ')}
-          />
+          <DataRow icon={Layers} label="Matériau tige" value={config.materiau_tige || '—'} />
+          <DataRow icon={Footprints} label="Semelle" value={config.semelle_type?.replace(/_/g, ' ') || '—'} />
+          <DataRow icon={Wrench} label="Montage" value={LABEL_MONTAGE[config.montage] || config.montage || '—'} />
+          <DataRow icon={Sparkles} label="Finitions" value={config.finitions || '—'} />
+          <DataRow icon={Heart} label="Doublure" value={(segConfig.materiaux_recommandes?.doublure || []).join(', ') || '—'} />
+          <DataRow label="Fermetures" value={contraintes.fermetures.join(', ')} />
         </Section>
 
         {/* Constraint checklist */}
@@ -228,10 +231,13 @@ function Section({ icon: Icon, title, children }) {
   )
 }
 
-function DataRow({ label, value }) {
+function DataRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex justify-between py-1 text-sm border-b border-gray-50 last:border-0">
-      <span className="text-gray-500">{label}</span>
+    <div className="flex items-center justify-between py-1 text-sm border-b border-gray-50 last:border-0">
+      <span className="text-gray-500 flex items-center gap-1.5">
+        {Icon && <Icon size={12} className="text-or/60" />}
+        {label}
+      </span>
       <span className="font-medium text-noir">{value}</span>
     </div>
   )
