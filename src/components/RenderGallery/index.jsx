@@ -3,6 +3,25 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download, ZoomIn, Clock, DollarSign } from 'lucide-react'
 import useAtelierStore from '../../store/useAtelierStore'
 
+async function downloadAllImages(renderResults) {
+  const successful = (renderResults || []).filter(r => r.status === 'success' && r.imageUrl)
+  const ts = Date.now()
+  for (const result of successful) {
+    try {
+      const response = await fetch(result.imageUrl)
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `atelier-ia-${result.view_id}-${ts}.png`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // Skip failed downloads silently
+    }
+  }
+}
+
 const VIEW_LABELS = {
   three_quarter: 'Vue principale',
   side_profile: 'Profil',
@@ -121,7 +140,10 @@ export default function RenderGallery() {
             <span>{completedCount} images générées</span>
             {usedEngine && <EngineBadge engine={usedEngine} />}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-or text-noir text-sm font-medium rounded-lg hover:bg-or-light transition-colors">
+          <button
+            onClick={() => downloadAllImages(renderResults)}
+            className="flex items-center gap-2 px-4 py-2 bg-or text-noir text-sm font-medium rounded-lg hover:bg-or-light transition-colors"
+          >
             <Download size={14} />
             Tout télécharger
           </button>
