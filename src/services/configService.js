@@ -1,14 +1,16 @@
 /**
- * Service de configuration — clé unique OpenAI
- * Stocke dans localStorage sous atelier_ia_openai_key
+ * Service de configuration — clés API OpenAI + Replicate
+ * Stocke dans localStorage
  */
 
-const STORAGE_KEY = 'atelier_ia_openai_key'
+const OPENAI_KEY = 'atelier_ia_openai_key'
+const REPLICATE_KEY = 'atelier_ia_replicate_key'
 
 export const configService = {
+  // --- OpenAI ---
   getOpenAIKey() {
     try {
-      return localStorage.getItem(STORAGE_KEY) || null
+      return localStorage.getItem(OPENAI_KEY) || null
     } catch {
       return null
     }
@@ -17,25 +19,60 @@ export const configService = {
   setOpenAIKey(key) {
     try {
       if (key) {
-        localStorage.setItem(STORAGE_KEY, key)
+        localStorage.setItem(OPENAI_KEY, key)
       } else {
-        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(OPENAI_KEY)
       }
+    } catch {}
+  },
+
+  // --- Replicate ---
+  getReplicateKey() {
+    try {
+      return localStorage.getItem(REPLICATE_KEY) || null
     } catch {
-      // localStorage unavailable
+      return null
     }
   },
 
+  setReplicateKey(key) {
+    try {
+      if (key) {
+        localStorage.setItem(REPLICATE_KEY, key)
+      } else {
+        localStorage.removeItem(REPLICATE_KEY)
+      }
+    } catch {}
+  },
+
+  // --- Config checks ---
   hasValidConfig() {
-    const key = this.getOpenAIKey()
-    return Boolean(key && key.length > 10)
+    return this.hasImageEngine()
+  },
+
+  hasImageEngine() {
+    const openai = this.getOpenAIKey()
+    const replicate = this.getReplicateKey()
+    return Boolean((openai && openai.length > 10) || (replicate && replicate.length > 10))
+  },
+
+  /**
+   * Auto-routing : l'utilisateur ne choisit jamais le moteur
+   * Replicate présente → flux_pro en primaire
+   * Replicate absente → dalle3 uniquement
+   */
+  getBestEngine() {
+    const replicate = this.getReplicateKey()
+    if (replicate && replicate.length > 10) return 'flux_pro'
+    const openai = this.getOpenAIKey()
+    if (openai && openai.length > 10) return 'dalle3'
+    return null
   },
 
   clearAll() {
     try {
-      localStorage.removeItem(STORAGE_KEY)
-    } catch {
-      // localStorage unavailable
-    }
+      localStorage.removeItem(OPENAI_KEY)
+      localStorage.removeItem(REPLICATE_KEY)
+    } catch {}
   },
 }
