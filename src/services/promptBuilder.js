@@ -138,6 +138,7 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
       view_label: viewCfg.view_label,
       positive,
       negative: NEGATIVE_PROMPT,
+      flux_optimized: buildFluxPrompt(positive, materiau),
       dalle_optimized: `Generate a photorealistic product photograph of ${positive}`,
       priority: viewCfg.priority,
     }
@@ -161,6 +162,16 @@ function buildMaterialLayer(materiau, couleur) {
 function buildConstructionLayer(montage) {
   const desc = MONTAGE_DESCRIPTION[montage]
   return desc || ''
+}
+
+/**
+ * Construit un prompt optimisé pour Flux Pro (Replicate)
+ * Flux Pro est plus sensible aux descriptions de texture cuir
+ */
+export function buildFluxPrompt(basePrompt, materiau) {
+  const texture = MATERIAU_TEXTURE[materiau] || 'leather'
+  const fluxPrefix = `photorealistic product shot, ${texture} texture highly detailed, visible grain pattern, specular highlights on leather surface, professional shoe photography`
+  return `${fluxPrefix}, ${basePrompt}, 8k, sharp focus`
 }
 
 // --- Legacy exports for backward compatibility ---
