@@ -1,15 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download, ZoomIn, Clock, DollarSign, Cpu } from 'lucide-react'
 import useAtelierStore from '../../store/useAtelierStore'
 
-const VIEW_ORDER = ['three_quarter', 'side_profile', 'macro_detail', 'sole', 'worn']
 const VIEW_LABELS = {
-  three_quarter: 'Vue 3/4',
+  three_quarter: 'Vue principale',
   side_profile: 'Profil',
-  macro_detail: 'Macro',
   sole: 'Semelle',
+  macro_detail: 'Détail macro',
   worn: 'Portée',
+}
+
+const ENGINE_STYLES = {
+  flux: { label: 'Flux Pro', bg: 'bg-purple-100', text: 'text-purple-700', activeBg: 'bg-purple-500 text-white' },
+  dalle: { label: 'DALL-E 3', bg: 'bg-blue-100', text: 'text-blue-700', activeBg: 'bg-blue-500 text-white' },
 }
 
 export default function RenderGallery() {
@@ -47,6 +51,17 @@ export default function RenderGallery() {
   const totalExpected = 10
   const progress = Math.round((completedCount / totalExpected) * 100)
 
+  const openLightbox = (result) => {
+    if (result?.imageUrl) {
+      setLightbox({
+        url: result.imageUrl,
+        viewId: result.view_id,
+        engine: result.engine,
+        time: result.generation_time_ms,
+      })
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -61,7 +76,7 @@ export default function RenderGallery() {
             <span>Génération en cours... {completedCount}/{totalExpected}</span>
             <span className="flex items-center gap-1">
               <DollarSign size={11} />
-              {totalRenderCost.toFixed(3)} USD
+              ${totalRenderCost.toFixed(3)} USD
             </span>
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -75,50 +90,42 @@ export default function RenderGallery() {
         </div>
       )}
 
-      {/* Main grid */}
+      {/* Main grid: top row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-        {/* Vue 3/4 — large (3 cols) */}
         <div className="lg:col-span-3">
           <ViewCell
             viewId="three_quarter"
             result={getResult('three_quarter', getPreferredEngine('three_quarter'))}
-            altResult={getResult('three_quarter', getPreferredEngine('three_quarter') === 'flux' ? 'dalle' : 'flux')}
             engine={getPreferredEngine('three_quarter')}
             onToggle={() => toggleEngine('three_quarter')}
-            onZoom={setLightbox}
+            onZoom={openLightbox}
             large
           />
         </div>
-
-        {/* Vue profil (2 cols) */}
         <div className="lg:col-span-2">
           <ViewCell
             viewId="side_profile"
             result={getResult('side_profile', getPreferredEngine('side_profile'))}
-            altResult={getResult('side_profile', getPreferredEngine('side_profile') === 'flux' ? 'dalle' : 'flux')}
             engine={getPreferredEngine('side_profile')}
             onToggle={() => toggleEngine('side_profile')}
-            onZoom={setLightbox}
+            onZoom={openLightbox}
           />
         </div>
-
-        {/* Bottom row: macro, sole, worn */}
-        {['macro_detail', 'sole', 'worn'].map((viewId) => (
-          <div key={viewId} className="lg:col-span-1 xl:col-span-1" style={{ gridColumn: 'span 1' }}>
-            <ViewCell
-              viewId={viewId}
-              result={getResult(viewId, getPreferredEngine(viewId))}
-              altResult={getResult(viewId, getPreferredEngine(viewId) === 'flux' ? 'dalle' : 'flux')}
-              engine={getPreferredEngine(viewId)}
-              onToggle={() => toggleEngine(viewId)}
-              onZoom={setLightbox}
-            />
-          </div>
-        ))}
       </div>
 
-      {/* Bottom row fix for 3 small cells */}
-      <style>{`.grid > div:nth-child(n+3):nth-child(-n+5) { grid-column: span 1; }`}</style>
+      {/* Bottom row: 3 equal cells */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {['macro_detail', 'sole', 'worn'].map((viewId) => (
+          <ViewCell
+            key={viewId}
+            viewId={viewId}
+            result={getResult(viewId, getPreferredEngine(viewId))}
+            engine={getPreferredEngine(viewId)}
+            onToggle={() => toggleEngine(viewId)}
+            onZoom={openLightbox}
+          />
+        ))}
+      </div>
 
       {/* Complete state: cost + download */}
       {renderStatus === 'complete' && (
@@ -126,14 +133,11 @@ export default function RenderGallery() {
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <DollarSign size={12} />
-              Coût total : {totalRenderCost.toFixed(3)} USD
+              Coût total : ${totalRenderCost.toFixed(3)} USD
             </span>
             <span>{completedCount} images générées</span>
           </div>
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-or text-noir text-sm font-medium rounded-lg hover:bg-or-light transition-colors"
-            onClick={() => {/* TODO: zip download */}}
-          >
+          <button className="flex items-center gap-2 px-4 py-2 bg-or text-noir text-sm font-medium rounded-lg hover:bg-or-light transition-colors">
             <Download size={14} />
             Tout télécharger
           </button>
@@ -147,9 +151,20 @@ export default function RenderGallery() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4"
             onClick={() => setLightbox(null)}
           >
+            {/* Lightbox header */}
+            <div className="absolute top-4 left-4 right-16 flex items-center gap-3">
+              <span className="text-white font-serif text-sm">{VIEW_LABELS[lightbox.viewId] || lightbox.viewId}</span>
+              <span className={`text-xs px-2 py-0.5 rounded ${ENGINE_STYLES[lightbox.engine]?.activeBg || 'bg-gray-600 text-white'}`}>
+                {ENGINE_STYLES[lightbox.engine]?.label || lightbox.engine}
+              </span>
+              <span className="text-white/60 text-xs flex items-center gap-1">
+                <Clock size={11} />
+                {(lightbox.time / 1000).toFixed(1)}s
+              </span>
+            </div>
             <button
               className="absolute top-4 right-4 text-white/70 hover:text-white"
               onClick={() => setLightbox(null)}
@@ -157,9 +172,9 @@ export default function RenderGallery() {
               <X size={24} />
             </button>
             <img
-              src={lightbox}
+              src={lightbox.url}
               alt="Zoom"
-              className="max-w-full max-h-full object-contain rounded-lg"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
@@ -169,48 +184,44 @@ export default function RenderGallery() {
   )
 }
 
-function ViewCell({ viewId, result, altResult, engine, onToggle, onZoom, large }) {
+function ViewCell({ viewId, result, engine, onToggle, onZoom, large }) {
   const label = VIEW_LABELS[viewId] || viewId
   const isLoading = !result || result.status === 'loading'
   const hasError = result?.status === 'error'
   const hasImage = result?.status === 'success' && result.imageUrl
+  const isMacro = viewId === 'macro_detail'
+
+  const fluxStyle = ENGINE_STYLES.flux
+  const dalleStyle = ENGINE_STYLES.dalle
 
   return (
     <div className={`bg-blanc rounded-xl border border-border shadow-sm overflow-hidden ${large ? 'min-h-[300px]' : 'min-h-[180px]'}`}>
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             onClick={onToggle}
-            className={`text-xs px-2 py-0.5 rounded transition-colors ${
-              engine === 'flux' ? 'bg-or/15 text-or-dark font-medium' : 'text-gray-400 hover:text-gray-600'
+            className={`text-xs px-2 py-0.5 rounded transition-all duration-200 ${
+              engine === 'flux' ? fluxStyle.activeBg : 'text-gray-400 hover:text-purple-500'
             }`}
           >
-            Flux
+            Flux Pro
           </button>
           <button
             onClick={onToggle}
-            className={`text-xs px-2 py-0.5 rounded transition-colors ${
-              engine === 'dalle' ? 'bg-or/15 text-or-dark font-medium' : 'text-gray-400 hover:text-gray-600'
+            className={`text-xs px-2 py-0.5 rounded transition-all duration-200 ${
+              engine === 'dalle' ? dalleStyle.activeBg : 'text-gray-400 hover:text-blue-500'
             }`}
           >
-            DALL-E
+            DALL-E 3
           </button>
         </div>
       </div>
 
       {/* Content */}
       <div className={`relative ${large ? 'h-[280px]' : 'h-[160px]'}`}>
-        {isLoading && (
-          <motion.div
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            className="absolute inset-0 bg-gray-50 flex items-center justify-center"
-          >
-            <div className="text-xs text-gray-400">Génération...</div>
-          </motion.div>
-        )}
+        {isLoading && <SkeletonLoader label={label} />}
 
         {hasError && (
           <div className="absolute inset-0 bg-red-50/50 flex items-center justify-center p-4">
@@ -224,14 +235,19 @@ function ViewCell({ viewId, result, altResult, engine, onToggle, onZoom, large }
               src={result.imageUrl}
               alt={`${label} - ${engine}`}
               className="w-full h-full object-cover cursor-pointer"
-              onClick={() => onZoom(result.imageUrl)}
+              onClick={() => onZoom(result)}
             />
             <button
               className="absolute top-2 right-2 bg-black/40 text-white p-1 rounded opacity-0 hover:opacity-100 transition-opacity"
-              onClick={() => onZoom(result.imageUrl)}
+              onClick={() => onZoom(result)}
             >
               <ZoomIn size={14} />
             </button>
+            {isMacro && (
+              <span className="absolute bottom-2 right-2 bg-black/50 text-white/80 text-xs px-2 py-0.5 rounded">
+                ×4 zoom simulé
+              </span>
+            )}
           </>
         )}
       </div>
@@ -239,7 +255,7 @@ function ViewCell({ viewId, result, altResult, engine, onToggle, onZoom, large }
       {/* Footer badges */}
       {result && result.status === 'success' && (
         <div className="flex items-center gap-2 px-3 py-1.5 border-t border-gray-50 text-xs text-gray-400">
-          <span className="flex items-center gap-1">
+          <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${engine === 'flux' ? fluxStyle.bg + ' ' + fluxStyle.text : dalleStyle.bg + ' ' + dalleStyle.text}`}>
             <Cpu size={10} />
             {engine === 'flux' ? 'Flux Pro' : 'DALL-E 3'}
           </span>
@@ -254,5 +270,32 @@ function ViewCell({ viewId, result, altResult, engine, onToggle, onZoom, large }
         </div>
       )}
     </div>
+  )
+}
+
+function SkeletonLoader({ label }) {
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <motion.div
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ repeat: Infinity, duration: 1.5 }}
+      className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2"
+    >
+      <p className="text-xs font-medium text-gray-400">{label}</p>
+      <div className="w-24 h-1 bg-gray-200 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full bg-or/50 rounded-full"
+          animate={{ width: ['0%', '100%'] }}
+          transition={{ repeat: Infinity, duration: 8, ease: 'linear' }}
+        />
+      </div>
+      <p className="text-xs text-gray-300">{elapsed}s</p>
+    </motion.div>
   )
 }
