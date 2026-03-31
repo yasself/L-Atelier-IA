@@ -76,14 +76,14 @@ const useAtelierStore = create((set, get) => ({
   prixEstime: null,
   setPrixEstime: (prix) => set({ prixEstime: prix }),
 
-  // Render state (5 vues × 2 moteurs)
+  // Render state (5 vues — OpenAI DALL-E 3)
   renderResults: [],
   renderStatus: 'idle', // 'idle' | 'generating' | 'partial' | 'complete' | 'error'
   totalRenderCost: 0,
   setRenderResults: (results) => set({ renderResults: results }),
   updateSingleRender: (renderResult) => set((state) => {
     const existing = state.renderResults.filter(
-      (r) => !(r.view_id === renderResult.view_id && r.engine === renderResult.engine)
+      (r) => !(r.view_id === renderResult.view_id)
     )
     const updated = [...existing, renderResult]
     const hasPartial = updated.some((r) => r.status === 'success')
@@ -96,6 +96,14 @@ const useAtelierStore = create((set, get) => ({
   setRenderStatus: (status) => set({ renderStatus: status }),
   addRenderCost: (cost) => set((state) => ({ totalRenderCost: state.totalRenderCost + cost })),
   resetRenders: () => set({ renderResults: [], renderStatus: 'idle', totalRenderCost: 0 }),
+
+  // Input mode
+  inputMode: 'text', // 'text' | 'photo' | 'pdf'
+  setInputMode: (mode) => set({ inputMode: mode }),
+
+  // Vision analysis result
+  visionResult: null,
+  setVisionResult: (result) => set({ visionResult: result }),
 
   // Reset all
   reset: () => set({
@@ -124,6 +132,8 @@ const useAtelierStore = create((set, get) => ({
     renderResults: [],
     renderStatus: 'idle',
     totalRenderCost: 0,
+    inputMode: 'text',
+    visionResult: null,
   }),
 }))
 
