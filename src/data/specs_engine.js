@@ -636,6 +636,26 @@ export const INTENTION_MAP = {
   brogue: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cuir_perfore', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.93 },
   desert_boot: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'nubuck', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.88 },
   chukka: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.85 },
+  // --- OCCASIONS ---
+  mariage: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.88 },
+  soiree: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.85 },
+  bureau: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.90 },
+  casual: { semelle: 'eva', montage: 'colle', material: 'nubuck', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.82 },
+  plage: { semelle: 'eva', montage: 'colle', material: 'toile', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.80 },
+  pluie: { semelle: 'caoutchouc', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.88 },
+  neige: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85 },
+  sport: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.90 },
+  grossesse: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.78 },
+  // --- SENSATIONS / QUALITÉS ---
+  confortable: { semelle: 'eva', montage: 'strobel', material: 'veau', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.82 },
+  leger: { semelle: 'eva', montage: 'strobel', material: 'knit', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.85 },
+  waterproof: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.90 },
+  vintage: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cuir_cire', finition: 'antique', doublure: 'chevre_naturelle', confidence: 0.85 },
+  minimaliste: { semelle: 'eva', montage: 'colle', material: 'veau', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.80 },
+  luxe: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cordovan', finition: 'cire', doublure: 'veau_velours', confidence: 0.92 },
+  artisanal: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'vachetta', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.88 },
+  vegan: { semelle: 'eva', montage: 'colle', material: 'microfibre', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.82 },
+  recycle: { semelle: 'eva', montage: 'colle', material: 'canvas', finition: 'naturel', doublure: 'cuir_vegetal_recycle', confidence: 0.78 },
 }
 
 /**
