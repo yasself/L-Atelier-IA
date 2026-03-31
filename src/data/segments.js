@@ -216,11 +216,12 @@ export const STYLES = [
   'Luxe discret', 'Streetwear', 'Formel', 'Décontracté', 'Romantique',
 ]
 
-export const FINITIONS = [
-  'Cire', 'Vernis', 'Naturel', 'Hydrofuge', 'Patiné', 'Antiqué',
-  'Brillant', 'Mat', 'Satiné', 'Deux tons', 'Délavé', 'Embossé',
-  'Perforé', 'Tressé', 'Métallisé', 'Irisé',
-]
+export const FINITIONS = {
+  bebe: ['Naturel', 'Mat'],
+  enfant: ['Naturel', 'Mat', 'Cire', 'Hydrofuge', 'Satiné'],
+  femme: ['Cire', 'Vernis', 'Naturel', 'Hydrofuge', 'Patiné', 'Antiqué', 'Brillant', 'Mat', 'Satiné', 'Deux tons', 'Délavé', 'Embossé', 'Perforé', 'Tressé', 'Métallisé', 'Irisé'],
+  homme: ['Cire', 'Naturel', 'Hydrofuge', 'Patiné', 'Antiqué', 'Mat', 'Satiné', 'Deux tons', 'Délavé', 'Embossé', 'Perforé', 'Tressé'],
+}
 
 export const HAUTEURS_TALON = [
   { id: 'plat', label: 'Plat (0–10mm)', min: 0, max: 10 },

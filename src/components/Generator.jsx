@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Wand2, RotateCcw, Save, Baby, Footprints, Sparkles, UserRound } from 'lucide-react'
 import useAtelierStore from '../store/useAtelierStore'
 import { getSegment, getSegmentsList, TYPES_CHAUSSURES, COULEURS, STYLES, FINITIONS, HAUTEURS_TALON, FERMETURES } from '../data/segments'
+import { getLabelFr } from '../data/specs_engine'
 import { enrichirProduit } from '../services/enrichmentService'
 import { genererPromptImage, buildViewPrompts } from '../services/promptBuilder'
 import { generateAllViews } from '../services/imageService'
@@ -191,7 +192,7 @@ export default function Generator() {
             >
               <option value="">Sélectionner...</option>
               {(segConfig?.materiaux_recommandes?.tige || []).map((m) => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>{getLabelFr(m)}</option>
               ))}
             </select>
           </div>
@@ -221,7 +222,7 @@ export default function Generator() {
             >
               <option value="">Sélectionner...</option>
               {montagesDisponibles.map((id) => (
-                <option key={id} value={id}>{id.replace(/_/g, ' ')}</option>
+                <option key={id} value={id}>{getLabelFr(id)}</option>
               ))}
             </select>
           </div>
@@ -236,7 +237,7 @@ export default function Generator() {
             >
               <option value="">Sélectionner...</option>
               {semellesDisponibles.map((id) => (
-                <option key={id} value={id}>{id.replace(/_/g, ' ')}</option>
+                <option key={id} value={id}>{getLabelFr(id)}</option>
               ))}
             </select>
           </div>
@@ -265,13 +266,13 @@ export default function Generator() {
               className={selectClass}
             >
               <option value="">Sélectionner...</option>
-              {FINITIONS.map((f) => (
+              {(FINITIONS[segment] || []).map((f) => (
                 <option key={f} value={f.toLowerCase()}>{f}</option>
               ))}
             </select>
           </div>
 
-          {/* Hauteur de talon — Femme et Homme uniquement */}
+          {/* Hauteur de talon — Femme (toutes) et Homme (max 45mm) uniquement */}
           {(segment === 'femme' || segment === 'homme') && (
             <div>
               <label className={labelClass}>Hauteur de talon</label>
@@ -282,7 +283,10 @@ export default function Generator() {
               >
                 <option value="">Sélectionner...</option>
                 {HAUTEURS_TALON
-                  .filter((h) => segment !== 'homme' || h.max <= 45)
+                  .filter((h) => {
+                    if (segment === 'homme') return h.max <= 45
+                    return true
+                  })
                   .map((h) => (
                     <option key={h.id} value={h.id}>{h.label}</option>
                   ))}
