@@ -1,112 +1,192 @@
 /**
- * Générateur de master prompt pour la création d'images haute fidélité
- * Produit des prompts structurés pour la génération d'images de chaussures
+ * Générateur de prompts multi-vues pour la création d'images haute fidélité
+ * Architecture en 6 couches × 5 vues × 3 moteurs (standard, Flux, DALL-E)
  */
 
 import segments from '../data/segments'
 import { montages, materiaux } from '../data/specs_engine'
 
+// --- Descriptions physiques des matériaux ---
+const MATERIAU_TEXTURE = {
+  vachette: 'full-grain cowhide leather, smooth tight grain with natural body and resilience',
+  chevreau: 'goat leather, fine-grained supple surface with delicate natural pebbling',
+  agneau: 'lambskin leather, ultra-soft buttery surface with fine natural grain',
+  veau: 'calfskin leather, smooth fine-pored surface with natural luster',
+  nubuck: 'nubuck leather, velvety micro-abraded surface with matte finish',
+  box_calf: 'box-calf leather, tight uniform grain with deep mirror polish potential',
+  vachetta: 'vachetta leather, undyed vegetable-tanned surface that patinas richly over time',
+  cuir_gras: 'waxed leather, oiled pull-up surface with rich depth and natural patina',
+  cordovan: 'shell cordovan horse leather, dense waxy surface with deep mirror-like rolling creases',
+  chevre: 'goat leather, tight pebbled grain with natural resilience and character',
+  cuir_perfore: 'perforated brogue leather, decorative punch-hole patterns over fine grain',
+  cuir_bicolore: 'two-tone leather, contrasting color panels with clean transition seams',
+  cuir_cire: 'pull-up waxed leather, rich oily surface that shifts color with movement',
+  cuir_waterproof: 'DWR-treated waterproof leather, smooth hydrophobic surface with sealed grain',
+  pu: 'polyurethane synthetic, smooth uniform surface mimicking leather grain',
+  microfibre: 'microfiber material, fine uniform texture with breathable finish',
+  neoprene: 'neoprene fabric, smooth elastic stretch surface with modern technical look',
+  mesh: 'breathable mesh textile, open-weave engineered knit pattern',
+  toile: 'cotton canvas, woven textile surface with visible thread pattern',
+  canvas: 'heavyweight canvas, dense woven cotton with rugged matte texture',
+  denim: 'denim fabric, diagonal twill weave with indigo-dyed character',
+  knit: 'engineered knit upper, seamless technical textile with sock-like fit',
+  toile_enduite: 'coated canvas, waterproof sealed woven textile with smooth finish',
+}
+
+// --- Descriptions techniques des montages ---
+const MONTAGE_DESCRIPTION = {
+  colle: 'cemented construction, clean bonded sole edge',
+  cousu_blake: 'blake stitched construction, single row of stitching visible on insole',
+  cousu_goodyear: 'goodyear welted construction, prominent welt stitching around perimeter',
+  cousu_strobel: 'strobel stitched construction, flexible sock-like inner sole',
+  injection: 'direct injection construction, seamless molded sole-to-upper bond',
+  vulcanise: 'vulcanized construction, rubber sole heat-bonded with visible foxing tape',
+  strobel: 'strobel construction, athletic sock-liner bonded to upper',
+  ago: 'ago moccasin construction, turned sole with soft flexible assembly',
+  norwegian_welt: 'norwegian welt construction, outward-turned welt with double row of heavy stitching',
+}
+
+// --- Paramètres de lumière par vue ---
+const VIEW_CONFIGS = {
+  three_quarter: {
+    view_id: 'three_quarter',
+    view_label: 'Vue 3/4',
+    priority: 1,
+    lighting: 'professional product photography, 3/4 front angle, studio softbox lighting, pure white seamless background, subtle drop shadow',
+    include_macro: true,
+  },
+  side_profile: {
+    view_id: 'side_profile',
+    view_label: 'Profil latéral',
+    priority: 2,
+    lighting: 'product photography, strict 90° lateral view, even diffused lighting, white background, no perspective distortion',
+    include_macro: true,
+  },
+  sole: {
+    view_id: 'sole',
+    view_label: 'Semelle',
+    priority: 3,
+    lighting: 'bottom view sole photography, overhead flat lay, neutral gray background, even lighting showing sole texture and construction details',
+    include_macro: false,
+  },
+  macro_detail: {
+    view_id: 'macro_detail',
+    view_label: 'Macro détail',
+    priority: 4,
+    lighting: 'extreme close-up macro photography, 100mm lens, shallow depth of field f/2.8, focus on leather grain texture and stitching, studio lighting raking light to reveal texture',
+    include_macro: true,
+  },
+  worn: {
+    view_id: 'worn',
+    view_label: 'Portée',
+    priority: 5,
+    lighting: 'lifestyle photography, shoe worn on foot, neutral trouser leg visible, natural window light, white studio floor, elegant editorial style',
+    include_macro: false,
+  },
+}
+
+const MACRO_DETAILS = 'micro-texture of leather grain clearly visible, precision hand stitching 5 stitches per centimeter, wax-polished leather edges, subtle leather surface light reflection, sharp focus on material quality'
+
+const QUALITY_LAYER = 'ultra high resolution, 8K, commercial product photography, photorealistic, no CGI artifacts, no plastic look, no cartoon'
+
+const NEGATIVE_PROMPT = 'cartoon, illustration, sketch, 3D render, CGI, plastic texture, blurry, low quality, watermark, text overlay, extra shoes, deformed, unrealistic proportions, toy-like'
+
+// --- Segment labels for English prompt ---
+const SEGMENT_EN = {
+  bebe: "baby's",
+  enfant: "children's",
+  femme: "women's",
+  homme: "men's",
+}
+
 /**
- * Génère un prompt image haute fidélité à partir d'une configuration produit
- * @param {object} config
- * @param {string} config.segment - bebe | enfant | femme | homme
- * @param {string} config.type_chaussure - ex: 'derby', 'sneaker', 'bottine'
- * @param {string} config.materiau_tige - id du matériau
- * @param {string} config.couleur - couleur principale
- * @param {string[]} config.couleurs_secondaires - couleurs d'accent
- * @param {string} config.montage - id du montage
- * @param {string} config.semelle_type - id du type de semelle
- * @param {string} config.style - ex: 'classique', 'sportif', 'casual'
- * @param {string} config.finitions - détails de finition
- * @param {string} config.angle - angle de vue souhaité
- * @returns {{ prompt: string, parametres: object }}
+ * Construit les prompts pour les 5 vues depuis les specs enrichies
+ * @param {object} specs - Résultat de enrichirProduit (specs.data contient les détails)
+ * @param {string} sourcingMode - 'maroc' | 'export'
+ * @returns {Array<ViewPrompt>} 5 objets ViewPrompt
+ */
+export function buildViewPrompts(specs, sourcingMode = 'maroc') {
+  const data = specs?.data || specs || {}
+  const config = specs?.config || {}
+
+  // Extract key info
+  const segment = config.segment || data.segment?.id || 'femme'
+  const type = config.type_chaussure || ''
+  const materiau = data.materiau_principal || config.materiau_tige || ''
+  const montage = data.montage_recommande || config.montage || ''
+  const couleur = config.couleur || ''
+  const finitions = config.finitions || ''
+
+  // Build the 6 layers
+  const layer1 = buildSilhouetteLayer(type, segment)
+  const layer2 = buildMaterialLayer(materiau, couleur)
+  const layer3 = buildConstructionLayer(montage)
+  const layer6 = QUALITY_LAYER
+
+  // Build per-view prompts
+  return Object.values(VIEW_CONFIGS).map((viewCfg) => {
+    const layer4 = viewCfg.lighting
+    const layer5 = viewCfg.include_macro ? MACRO_DETAILS : ''
+
+    const layers = [layer1, layer2, layer3, layer4, layer5, layer6].filter(Boolean)
+    if (finitions) layers.splice(3, 0, `finishing details: ${finitions}`)
+
+    const positive = layers.join(', ')
+
+    return {
+      view_id: viewCfg.view_id,
+      view_label: viewCfg.view_label,
+      positive,
+      negative: NEGATIVE_PROMPT,
+      flux_optimized: `professional photograph, photorealistic, ${positive}`,
+      dalle_optimized: `Generate a photorealistic product photograph of ${positive}`,
+      priority: viewCfg.priority,
+    }
+  })
+}
+
+// --- Layer builders ---
+
+function buildSilhouetteLayer(type, segment) {
+  const segLabel = SEGMENT_EN[segment] || segment
+  const shoeType = type || 'shoe'
+  return `${shoeType} shoe, ${segLabel} footwear`
+}
+
+function buildMaterialLayer(materiau, couleur) {
+  const texture = MATERIAU_TEXTURE[materiau] || materiau || 'leather'
+  const colorStr = couleur ? `${couleur} ` : ''
+  return `crafted in ${colorStr}${texture}`
+}
+
+function buildConstructionLayer(montage) {
+  const desc = MONTAGE_DESCRIPTION[montage]
+  return desc || ''
+}
+
+// --- Legacy exports for backward compatibility ---
+
+/**
+ * Legacy: génère un prompt image simple (vue 3/4 par défaut)
  */
 export function genererPromptImage(config) {
-  const seg = segments[config.segment]
-  const montageInfo = montages[config.montage]
-  const materiauInfo = trouverMateriau(config.materiau_tige)
-
-  const sections = [
-    buildContextSection(seg, config),
-    buildConstructionSection(config, montageInfo, materiauInfo),
-    buildEsthetiqueSection(config),
-    buildTechniqueSection(config),
-    buildQualiteSection(),
-  ]
-
-  const prompt = sections.filter(Boolean).join('\n\n')
+  const mockSpecs = { data: {}, config }
+  const views = buildViewPrompts(mockSpecs)
+  const mainView = views[0]
 
   return {
-    prompt,
+    prompt: mainView.positive,
     parametres: {
-      segment: seg?.label || config.segment,
+      segment: config.segment,
       type: config.type_chaussure,
       style: config.style,
-      longueur_prompt: prompt.length,
+      longueur_prompt: mainView.positive.length,
     },
   }
 }
 
-function buildContextSection(seg, config) {
-  const pointures = seg ? `pointures ${seg.pointures.min}-${seg.pointures.max}` : ''
-  return `PRODUCT: Professional footwear product photo of a ${config.type_chaussure || 'shoe'}, ${seg?.label || config.segment} segment${pointures ? ` (${pointures})` : ''}, ${config.style || 'classic'} style.`
-}
-
-function buildConstructionSection(config, montageInfo, materiauInfo) {
-  const parts = ['CONSTRUCTION:']
-
-  if (materiauInfo) {
-    parts.push(`Upper material: ${materiauInfo.label}, thickness ${materiauInfo.epaisseur.min}-${materiauInfo.epaisseur.max}mm.`)
-  } else if (config.materiau_tige) {
-    parts.push(`Upper material: ${config.materiau_tige}.`)
-  }
-
-  if (montageInfo) {
-    parts.push(`Assembly: ${montageInfo.label} (${montageInfo.description}).`)
-  }
-
-  if (config.semelle_type) {
-    parts.push(`Outsole: ${config.semelle_type} material.`)
-  }
-
-  return parts.join(' ')
-}
-
-function buildEsthetiqueSection(config) {
-  const parts = ['AESTHETICS:']
-
-  if (config.couleur) {
-    parts.push(`Primary color: ${config.couleur}.`)
-  }
-  if (config.couleurs_secondaires?.length) {
-    parts.push(`Accent colors: ${config.couleurs_secondaires.join(', ')}.`)
-  }
-  if (config.finitions) {
-    parts.push(`Finishing details: ${config.finitions}.`)
-  }
-
-  return parts.length > 1 ? parts.join(' ') : null
-}
-
-function buildTechniqueSection(config) {
-  const angle = config.angle || '3/4 front view'
-  return `PHOTOGRAPHY: Studio lighting, white seamless background, ${angle}, high resolution, product photography style, sharp focus on material texture and stitching details, soft shadows.`
-}
-
-function buildQualiteSection() {
-  return 'QUALITY: 8K resolution, photorealistic rendering, accurate material representation, professional color calibration, no distortion, commercially viable product image.'
-}
-
-function trouverMateriau(id) {
-  if (!id) return null
-  for (const categorie of Object.values(materiaux)) {
-    if (categorie[id]) return categorie[id]
-  }
-  return null
-}
-
 /**
- * Génère un prompt textuel pour description marketing
+ * Legacy: génère un prompt textuel pour description marketing
  */
 export function genererPromptDescription(config) {
   const seg = segments[config.segment]
@@ -124,26 +204,16 @@ Maximum 3 phrases. Ton premium.`
 }
 
 /**
- * Génère des variations de prompt pour exploration créative
+ * Legacy: génère des variations
  */
 export function genererVariations(config, nombre = 3) {
-  const angles = ['3/4 front view', 'side profile view', 'top-down view', 'detail close-up of stitching', 'worn lifestyle shot']
-  const ambiances = ['studio minimal', 'luxury boutique display', 'artisan workshop setting']
+  const mockSpecs = { data: {}, config }
+  const views = buildViewPrompts(mockSpecs)
 
-  const variations = []
-  for (let i = 0; i < nombre; i++) {
-    const variationConfig = {
-      ...config,
-      angle: angles[i % angles.length],
-    }
-    const { prompt } = genererPromptImage(variationConfig)
-    variations.push({
-      id: i + 1,
-      angle: angles[i % angles.length],
-      ambiance: ambiances[i % ambiances.length],
-      prompt: prompt.replace('white seamless background', ambiances[i % ambiances.length]),
-    })
-  }
-
-  return variations
+  return views.slice(0, nombre).map((v, i) => ({
+    id: i + 1,
+    angle: v.view_label,
+    ambiance: v.view_label,
+    prompt: v.positive,
+  }))
 }

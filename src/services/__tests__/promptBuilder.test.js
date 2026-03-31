@@ -1,443 +1,199 @@
 /**
- * Tests for promptBuilder.js
+ * Tests for promptBuilder.js — 5-view layered architecture
  */
 
 import { describe, it, expect } from 'vitest'
 import {
+  buildViewPrompts,
   genererPromptImage,
   genererPromptDescription,
   genererVariations,
 } from '../promptBuilder'
 
 describe('promptBuilder', () => {
-  describe('genererPromptImage', () => {
-    it('should return an object with prompt and parametres', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
+  describe('buildViewPrompts', () => {
+    const mockSpecs = {
+      data: { materiau_principal: 'vachette', montage_recommande: 'cousu_blake' },
+      config: { segment: 'femme', type_chaussure: 'bottine', couleur: 'noir', materiau_tige: 'vachette', montage: 'cousu_blake' },
+    }
 
-      const result = genererPromptImage(config)
-
-      expect(result).toBeDefined()
-      expect(result.prompt).toBeDefined()
-      expect(typeof result.prompt).toBe('string')
-      expect(result.parametres).toBeDefined()
-      expect(typeof result.parametres).toBe('object')
+    it('should return exactly 5 ViewPrompts', () => {
+      const result = buildViewPrompts(mockSpecs)
+      expect(result).toHaveLength(5)
     })
 
-    it('should include "Studio lighting" in prompt', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'sneaker',
-        materiau_tige: 'pu',
-        couleur: 'blanc',
-        montage: 'injection',
-        semelle_type: 'eva',
-        style: 'sportif',
+    it('each view should have required fields', () => {
+      const result = buildViewPrompts(mockSpecs)
+      for (const view of result) {
+        expect(view.view_id).toBeDefined()
+        expect(view.view_label).toBeDefined()
+        expect(view.positive).toBeDefined()
+        expect(view.negative).toBeDefined()
+        expect(view.flux_optimized).toBeDefined()
+        expect(view.dalle_optimized).toBeDefined()
+        expect(view.priority).toBeDefined()
       }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('Studio lighting')
     })
 
-    it('should include "sharp focus on material texture" in prompt', () => {
-      const config = {
-        segment: 'homme',
-        type_chaussure: 'oxford',
-        materiau_tige: 'chevreau',
-        couleur: 'marron',
-        montage: 'cousu_blake',
-        semelle_type: 'cuir_semelle',
-        style: 'classique',
-      }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('sharp focus on material texture')
+    it('should have correct view_ids', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const ids = result.map(v => v.view_id)
+      expect(ids).toContain('three_quarter')
+      expect(ids).toContain('side_profile')
+      expect(ids).toContain('sole')
+      expect(ids).toContain('macro_detail')
+      expect(ids).toContain('worn')
     })
 
-    it('should include "8K resolution" in prompt', () => {
-      const config = {
-        segment: 'enfant',
-        type_chaussure: 'sneaker',
-        materiau_tige: 'mesh',
-        couleur: 'bleu',
-        montage: 'colle',
-        semelle_type: 'eva',
-        style: 'sportif',
-      }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('8K resolution')
+    it('three_quarter should be priority 1', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const main = result.find(v => v.view_id === 'three_quarter')
+      expect(main.priority).toBe(1)
     })
 
-    it('should include "photorealistic" in prompt', () => {
-      const config = {
-        segment: 'bebe',
-        type_chaussure: 'chausson',
-        materiau_tige: 'agneau',
-        couleur: 'rose',
-        montage: 'colle',
-        semelle_type: 'eva',
-        style: 'doux',
+    it('flux_optimized should start with professional photograph', () => {
+      const result = buildViewPrompts(mockSpecs)
+      for (const view of result) {
+        expect(view.flux_optimized).toMatch(/^professional photograph, photorealistic,/)
       }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('photorealistic')
     })
 
-    it('should include segment label in prompt', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
+    it('dalle_optimized should start with Generate instruction', () => {
+      const result = buildViewPrompts(mockSpecs)
+      for (const view of result) {
+        expect(view.dalle_optimized).toMatch(/^Generate a photorealistic product photograph of/)
       }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('bottine')
     })
 
-    it('should include material details when materiau_tige is found', () => {
-      const config = {
-        segment: 'homme',
-        type_chaussure: 'derby',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('Cuir de vachette')
+    it('should include 5 macro details in three_quarter view', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const main = result.find(v => v.view_id === 'three_quarter')
+      expect(main.positive).toContain('micro-texture of leather grain clearly visible')
+      expect(main.positive).toContain('precision hand stitching 5 stitches per centimeter')
+      expect(main.positive).toContain('wax-polished leather edges')
+      expect(main.positive).toContain('subtle leather surface light reflection')
+      expect(main.positive).toContain('sharp focus on material quality')
     })
 
-    it('should include colors in prompt when provided', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'sneaker',
-        materiau_tige: 'pu',
-        couleur: 'rouge',
-        couleurs_secondaires: ['blanc', 'noir'],
-        montage: 'injection',
-        semelle_type: 'eva',
-        style: 'sportif',
-      }
+    it('should NOT include macro details in sole view', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const sole = result.find(v => v.view_id === 'sole')
+      expect(sole.positive).not.toContain('micro-texture of leather grain')
+    })
 
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('rouge')
-      expect(result.prompt).toContain('blanc')
+    it('should NOT include macro details in worn view', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const worn = result.find(v => v.view_id === 'worn')
+      expect(worn.positive).not.toContain('micro-texture of leather grain')
+    })
+
+    it('should include material texture description', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const main = result.find(v => v.view_id === 'three_quarter')
+      expect(main.positive).toContain('cowhide leather')
     })
 
     it('should include construction details', () => {
-      const config = {
-        segment: 'homme',
-        type_chaussure: 'oxford',
-        materiau_tige: 'vachette',
-        couleur: 'marron',
-        montage: 'cousu_blake',
-        semelle_type: 'cuir_semelle',
-        style: 'classique',
-      }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('CONSTRUCTION:')
+      const result = buildViewPrompts(mockSpecs)
+      const main = result.find(v => v.view_id === 'three_quarter')
+      expect(main.positive).toContain('blake stitched construction')
     })
 
-    it('should use default angle when not provided', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
+    it('negative prompt should contain standard exclusions', () => {
+      const result = buildViewPrompts(mockSpecs)
+      for (const view of result) {
+        expect(view.negative).toContain('cartoon')
+        expect(view.negative).toContain('3D render')
+        expect(view.negative).toContain('blurry')
       }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('3/4 front view')
     })
 
-    it('should use custom angle when provided', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-        angle: 'side profile view',
+    it('should include 8K and photorealistic in quality layer', () => {
+      const result = buildViewPrompts(mockSpecs)
+      for (const view of result) {
+        expect(view.positive).toContain('8K')
+        expect(view.positive).toContain('photorealistic')
       }
-
-      const result = genererPromptImage(config)
-      expect(result.prompt).toContain('side profile view')
     })
 
-    it('parametres should include segment label', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
-      const result = genererPromptImage(config)
-      expect(result.parametres.segment).toBeDefined()
-      expect(result.parametres.type).toBe('bottine')
-      expect(result.parametres.style).toBe('classique')
+    it('should include segment in silhouette layer', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const main = result.find(v => v.view_id === 'three_quarter')
+      expect(main.positive).toContain("women's footwear")
     })
 
-    it('parametres should include prompt length', () => {
-      const config = {
-        segment: 'homme',
-        type_chaussure: 'derby',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
+    it('should include color when provided', () => {
+      const result = buildViewPrompts(mockSpecs)
+      const main = result.find(v => v.view_id === 'three_quarter')
+      expect(main.positive).toContain('noir')
+    })
+  })
 
+  describe('genererPromptImage (legacy)', () => {
+    it('should return object with prompt and parametres', () => {
+      const config = { segment: 'femme', type_chaussure: 'bottine', style: 'classique' }
       const result = genererPromptImage(config)
-      expect(result.parametres.longueur_prompt).toBeDefined()
-      expect(typeof result.parametres.longueur_prompt).toBe('number')
+      expect(result.prompt).toBeDefined()
+      expect(result.parametres).toBeDefined()
       expect(result.parametres.longueur_prompt).toBeGreaterThan(0)
+    })
+
+    it('should include shoe type in prompt', () => {
+      const config = { segment: 'homme', type_chaussure: 'derby' }
+      const result = genererPromptImage(config)
+      expect(result.prompt).toContain('derby')
+    })
+
+    it('should include photorealistic in prompt', () => {
+      const config = { segment: 'bebe', type_chaussure: 'chausson' }
+      const result = genererPromptImage(config)
+      expect(result.prompt).toContain('photorealistic')
     })
   })
 
   describe('genererPromptDescription', () => {
     it('should return a string', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        style: 'classique',
-      }
-
+      const config = { segment: 'femme', type_chaussure: 'bottine', couleur: 'noir' }
       const result = genererPromptDescription(config)
       expect(typeof result).toBe('string')
       expect(result.length).toBeGreaterThan(0)
     })
 
-    it('should include segment information', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        style: 'classique',
-      }
-
+    it('should include segment label', () => {
+      const config = { segment: 'femme', type_chaussure: 'bottine' }
       const result = genererPromptDescription(config)
       expect(result).toContain('Femme')
     })
 
-    it('should include type_chaussure when provided', () => {
-      const config = {
-        segment: 'homme',
-        type_chaussure: 'derby',
-        materiau_tige: 'chevreau',
-        couleur: 'marron',
-        montage: 'cousu_blake',
-        style: 'classique',
-      }
-
-      const result = genererPromptDescription(config)
-      expect(result).toContain('derby')
-    })
-
-    it('should include materiau_tige when provided', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'agneau',
-        couleur: 'noir',
-        montage: 'colle',
-        style: 'classique',
-      }
-
+    it('should include materiau', () => {
+      const config = { segment: 'homme', materiau_tige: 'agneau' }
       const result = genererPromptDescription(config)
       expect(result).toContain('agneau')
     })
-
-    it('should include couleur when provided', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'bordeaux',
-        montage: 'colle',
-        style: 'classique',
-      }
-
-      const result = genererPromptDescription(config)
-      expect(result).toContain('bordeaux')
-    })
-
-    it('should use defaults for missing parameters', () => {
-      const config = {
-        segment: 'enfant',
-      }
-
-      const result = genererPromptDescription(config)
-      expect(typeof result).toBe('string')
-      expect(result.length).toBeGreaterThan(0)
-      // Should use defaults for missing fields
-      expect(result).toContain('chaussure')
-    })
   })
 
-  describe('genererVariations', () => {
-    it('should return array of variations', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
+  describe('genererVariations (legacy)', () => {
+    it('should return array of 3 variations by default', () => {
+      const config = { segment: 'femme', type_chaussure: 'bottine' }
       const result = genererVariations(config)
-      expect(Array.isArray(result)).toBe(true)
+      expect(result).toHaveLength(3)
     })
 
-    it('should return 3 variations by default', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
-      const result = genererVariations(config)
-      expect(result.length).toBe(3)
-    })
-
-    it('should return correct number of variations when specified', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
-      const result = genererVariations(config, 5)
-      expect(result.length).toBe(5)
-    })
-
-    it('should have id, angle, ambiance, and prompt for each variation', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
+    it('each variation should have id, angle, prompt', () => {
+      const config = { segment: 'femme', type_chaussure: 'bottine' }
       const result = genererVariations(config, 2)
-      expect(result[0].id).toBeDefined()
-      expect(result[0].angle).toBeDefined()
-      expect(result[0].ambiance).toBeDefined()
-      expect(result[0].prompt).toBeDefined()
-      expect(typeof result[0].prompt).toBe('string')
+      for (const v of result) {
+        expect(v.id).toBeDefined()
+        expect(v.angle).toBeDefined()
+        expect(v.prompt).toBeDefined()
+      }
     })
 
-    it('should have different angles for each variation', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
+    it('should have different angles', () => {
+      const config = { segment: 'femme', type_chaussure: 'bottine' }
       const result = genererVariations(config, 3)
       const angles = result.map(v => v.angle)
-      // First 3 variations should have different angles
       expect(angles[0]).not.toBe(angles[1])
-      expect(angles[1]).not.toBe(angles[2])
-    })
-
-    it('should have different ambiances for each variation', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
-      const result = genererVariations(config, 3)
-      const ambiances = result.map(v => v.ambiance)
-      // First 3 variations should have different ambiances
-      expect(ambiances[0]).not.toBe(ambiances[1])
-      expect(ambiances[1]).not.toBe(ambiances[2])
-    })
-
-    it('should include ambiance in the prompt text', () => {
-      const config = {
-        segment: 'femme',
-        type_chaussure: 'bottine',
-        materiau_tige: 'vachette',
-        couleur: 'noir',
-        montage: 'colle',
-        semelle_type: 'tr',
-        style: 'classique',
-      }
-
-      const result = genererVariations(config, 1)
-      // The prompt should contain the ambiance instead of white seamless background
-      expect(result[0].prompt).toContain(result[0].ambiance)
-    })
-
-    it('should contain photography terms in all variations', () => {
-      const config = {
-        segment: 'homme',
-        type_chaussure: 'oxford',
-        materiau_tige: 'vachette',
-        couleur: 'marron',
-        montage: 'cousu_blake',
-        semelle_type: 'cuir_semelle',
-        style: 'classique',
-      }
-
-      const result = genererVariations(config, 2)
-      for (const variation of result) {
-        expect(variation.prompt).toContain('Studio lighting')
-        expect(variation.prompt).toContain('8K resolution')
-        expect(variation.prompt).toContain('photorealistic')
-      }
     })
   })
 })
