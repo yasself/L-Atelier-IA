@@ -357,6 +357,213 @@ export const montages = {
   },
 }
 
+export const doublures = {
+  chevre_naturelle: {
+    label: 'Chèvre naturelle (premium)',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 25, premium: 60 },
+  },
+  veau_velours: {
+    label: 'Veau velours (luxe)',
+    segments: ['homme'],
+    price_mad_pair: { local: 40, premium: 90 },
+  },
+  textile_coton_bio: {
+    label: 'Textile coton bio (bébé/enfant)',
+    segments: ['bebe', 'enfant'],
+    price_mad_pair: { local: 8, premium: 20 },
+  },
+  microfibre_respirante: {
+    label: 'Microfibre respirante',
+    segments: ['bebe', 'enfant', 'femme', 'homme'],
+    price_mad_pair: { local: 10, premium: 25 },
+  },
+  laine_merinos: {
+    label: 'Laine mérinos (hiver)',
+    segments: ['femme', 'homme', 'enfant'],
+    price_mad_pair: { local: 30, premium: 65 },
+  },
+  fourrure_synthetique: {
+    label: 'Fourrure synthétique (hiver)',
+    segments: ['femme', 'enfant'],
+    price_mad_pair: { local: 15, premium: 35 },
+  },
+  lin_naturel: {
+    label: 'Lin naturel (été)',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 12, premium: 30 },
+  },
+  cuir_vegetal_recycle: {
+    label: 'Cuir végétal recyclé',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 20, premium: 50 },
+  },
+  sans_doublure: {
+    label: 'Sans doublure (unlined — été)',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 0, premium: 0 },
+  },
+}
+
+export const renforts = {
+  contrefort_thermo: {
+    label: 'Contrefort thermoplastique',
+    segments: ['enfant', 'femme', 'homme'],
+    price_mad_pair: { local: 5, premium: 12 },
+  },
+  contrefort_cuir: {
+    label: 'Contrefort cuir (premium)',
+    segments: ['homme'],
+    price_mad_pair: { local: 15, premium: 35 },
+  },
+  bout_dur_thermo: {
+    label: 'Bout dur thermoplastique',
+    segments: ['enfant', 'femme', 'homme'],
+    price_mad_pair: { local: 4, premium: 10 },
+  },
+  bout_dur_acier: {
+    label: 'Bout dur acier',
+    segments: ['homme'],
+    price_mad_pair: { local: 12, premium: 25 },
+  },
+  cambrion_acier: {
+    label: 'Cambrion acier',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 6, premium: 15 },
+  },
+  cambrion_bois: {
+    label: 'Cambrion bois (premium)',
+    segments: ['homme'],
+    price_mad_pair: { local: 10, premium: 25 },
+  },
+  cambrion_carbone: {
+    label: 'Cambrion fibre carbone',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 20, premium: 50 },
+  },
+  semelle_int_mousse: {
+    label: 'Semelle intérieure mousse mémoire',
+    segments: ['femme', 'homme', 'enfant'],
+    price_mad_pair: { local: 8, premium: 20 },
+  },
+  semelle_int_liege: {
+    label: 'Semelle intérieure liège',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 12, premium: 30 },
+  },
+  semelle_int_cuir: {
+    label: 'Semelle intérieure cuir',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 15, premium: 40 },
+  },
+}
+
+export const fermetures = {
+  lacets_ronds_cires: {
+    label: 'Lacets ronds cirés',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 3, premium: 8 },
+  },
+  lacets_plats: {
+    label: 'Lacets plats',
+    segments: ['enfant', 'femme', 'homme'],
+    price_mad_pair: { local: 2, premium: 5 },
+  },
+  velcro: {
+    label: 'Velcro (enfant/bébé)',
+    segments: ['bebe', 'enfant'],
+    price_mad_pair: { local: 3, premium: 6 },
+  },
+  boucle_metal: {
+    label: 'Boucle métal',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 8, premium: 25 },
+  },
+  zip_lateral: {
+    label: 'Zip latéral',
+    segments: ['femme', 'homme', 'enfant'],
+    price_mad_pair: { local: 6, premium: 15 },
+  },
+  zip_interieur: {
+    label: 'Zip intérieur discret',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 8, premium: 18 },
+  },
+  elastique_chelsea: {
+    label: 'Élastique (chelsea)',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 5, premium: 12 },
+  },
+  scratch: {
+    label: 'Scratch (bébé premiers pas)',
+    segments: ['bebe'],
+    price_mad_pair: { local: 2, premium: 5 },
+  },
+  bouton_pression: {
+    label: 'Bouton-pression',
+    segments: ['bebe', 'enfant'],
+    price_mad_pair: { local: 3, premium: 7 },
+  },
+  bride_cheville: {
+    label: 'Bride cheville',
+    segments: ['femme'],
+    price_mad_pair: { local: 6, premium: 15 },
+  },
+}
+
+export const ornements = {
+  brogue_perforations: {
+    label: 'Brogue perforations',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 10, premium: 25 },
+  },
+  medallion: {
+    label: 'Medallion (cap toe)',
+    segments: ['homme'],
+    price_mad_pair: { local: 12, premium: 30 },
+  },
+  tassel: {
+    label: 'Tassel (gland)',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 8, premium: 20 },
+  },
+  kiltie: {
+    label: 'Kiltie',
+    segments: ['homme'],
+    price_mad_pair: { local: 10, premium: 22 },
+  },
+  monk_strap_1: {
+    label: 'Monk strap 1 boucle',
+    segments: ['homme'],
+    price_mad_pair: { local: 15, premium: 40 },
+  },
+  monk_strap_2: {
+    label: 'Monk strap 2 boucles',
+    segments: ['homme'],
+    price_mad_pair: { local: 20, premium: 50 },
+  },
+  couture_blake_visible: {
+    label: 'Couture Blake visible (décorative)',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 8, premium: 18 },
+  },
+  liseres_contrastes: {
+    label: 'Liserés contrastés',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 5, premium: 12 },
+  },
+  logo_embosse: {
+    label: 'Logo discret embossé',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 3, premium: 8 },
+  },
+  clous_decoratifs: {
+    label: 'Clous décoratifs',
+    segments: ['femme', 'homme'],
+    price_mad_pair: { local: 6, premium: 15 },
+  },
+}
+
 export const reglesParSegment = {
   bebe: {
     epaisseur_tige_max: 0.8,
