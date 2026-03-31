@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion'
 import { Trash2, Search, Download } from 'lucide-react'
 import { useState } from 'react'
-import useAppStore from '../store/useAppStore'
+import useAtelierStore from '../store/useAtelierStore'
 import Sidebar from '../components/Sidebar'
 import Generator from '../components/Generator'
 import * as historyService from '../services/historyService'
 
 export default function Dashboard() {
-  const { activeView } = useAppStore()
+  const { activeView } = useAtelierStore()
 
   return (
     <div className="flex min-h-screen">

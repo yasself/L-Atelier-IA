@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Globe, MapPin, Award, Clock, Package, ChevronDown, ChevronUp } from 'lucide-react'
-import useAppStore from '../store/useAppStore'
+import useAtelierStore from '../store/useAtelierStore'
 import { getFournisseurs, getCategories } from '../data/sourcing'
 
 export default function SourcingModule({ segment, config }) {
-  const { sourcingMode, setSourcingMode } = useAppStore()
+  const { sourcingMode, setSourcingMode } = useAtelierStore()
   const [expandedCategory, setExpandedCategory] = useState(null)
 
   const categories = getCategories()

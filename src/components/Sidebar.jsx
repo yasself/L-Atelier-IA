@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion'
 import { Baby, Footprints, Sparkles, UserRound, Clock, PanelLeftClose, PanelLeft } from 'lucide-react'
-import useAppStore from '../store/useAppStore'
+import useAtelierStore from '../store/useAtelierStore'
 import { getSegmentsList } from '../data/segments'
 import * as historyService from '../services/historyService'
 
 const iconMap = { Baby, Footprints, Sparkles, UserRound }
 
 export default function Sidebar() {
-  const { segment, setSegment, sidebarOpen, toggleSidebar, setActiveView, activeView } = useAppStore()
+  const { segment, setSegment, sidebarOpen, toggleSidebar, setActiveView, activeView } = useAtelierStore()
   const segmentsList = getSegmentsList()
   const recentHistory = historyService.getRecent(5)
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Wand2, RotateCcw, Save } from 'lucide-react'
-import useAppStore from '../store/useAppStore'
+import useAtelierStore from '../store/useAtelierStore'
 import { getSegment } from '../data/segments'
 import { getMontagesParSegment, getSemellesParSegment } from '../data/specs_engine'
 import { enrichirProduit } from '../services/enrichmentService'
@@ -22,7 +22,7 @@ const COULEURS = ['Noir', 'Marron', 'Cognac', 'Tan', 'Bordeaux', 'Marine', 'Blan
 const STYLES = ['Classique', 'Sportif', 'Casual', 'Élégant', 'Bohème', 'Minimaliste', 'Urbain']
 
 export default function Generator() {
-  const { segment, config, setConfig, resetConfig, setEnrichmentResult, enrichmentResult, setGeneratedPrompt, generatedPrompt, loading, setLoading } = useAppStore()
+  const { segment, config, setConfig, resetConfig, setEnrichmentResult, enrichmentResult, setGeneratedPrompt, generatedPrompt, loading, setLoading } = useAtelierStore()
   const [saved, setSaved] = useState(false)
 
   const segConfig = getSegment(segment)

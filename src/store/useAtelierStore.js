@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-const useAppStore = create((set, get) => ({
+const useAtelierStore = create((set, get) => ({
   // Segment sélectionné
   segment: 'femme',
   setSegment: (segment) => set({ segment }),
@@ -66,4 +66,4 @@ const useAppStore = create((set, get) => ({
   setLoading: (loading) => set({ loading }),
 }))
 
-export default useAppStore
+export default useAtelierStore
