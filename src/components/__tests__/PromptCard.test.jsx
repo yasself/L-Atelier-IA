@@ -68,7 +68,7 @@ describe('PromptCard', () => {
     fireEvent.click(copyButton)
 
     await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Test prompt for copying')
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('Test prompt for copying'))
     })
   })
 

@@ -1,13 +1,40 @@
 import { motion } from 'framer-motion'
-import { Globe, MapPin, Award, Clock, Package } from 'lucide-react'
+import { Globe, MapPin, Award, Clock, Package, Truck } from 'lucide-react'
 import useAtelierStore from '../store/useAtelierStore'
 import { getFournisseurs } from '../data/sourcing'
 import { getRelevantCategories } from '../services/sourcingService'
+
+const CERT_PRIORITY = { 'LWG Gold': 0, 'LWG Silver': 1 }
+
+function sortByCertification(list) {
+  return [...list].sort((a, b) => {
+    const aPrio = Math.min(...(a.certification || []).map((c) => CERT_PRIORITY[c] ?? 99))
+    const bPrio = Math.min(...(b.certification || []).map((c) => CERT_PRIORITY[c] ?? 99))
+    return aPrio - bPrio
+  })
+}
 
 export default function SourcingModule({ segment, config }) {
   const { sourcingMode, setSourcingMode, currentSpecs } = useAtelierStore()
 
   const relevantCategories = getRelevantCategories(currentSpecs)
+
+  // Collect all fournisseurs for summary
+  let totalFournisseurs = 0
+  let prixMin = Infinity
+  let prixMax = 0
+  for (const cat of relevantCategories) {
+    const liste = getFournisseurs(cat, sourcingMode)
+    totalFournisseurs += liste.length
+    for (const f of liste) {
+      const prix = f.prix_mad_m2 || f.prix_mad_paire || f.prix_mad_unite
+      if (prix) {
+        if (prix.min < prixMin) prixMin = prix.min
+        if (prix.max > prixMax) prixMax = prix.max
+      }
+    }
+  }
+  if (prixMin === Infinity) prixMin = 0
 
   return (
     <motion.div
@@ -24,11 +51,11 @@ export default function SourcingModule({ segment, config }) {
             <h3 className="text-or font-serif text-lg">Sourcing</h3>
           </div>
 
-          {/* Toggle pill: Maroc Local / Export Premium */}
+          {/* Toggle pill with 200ms transition */}
           <div className="flex bg-gray-100 rounded-full p-0.5">
             <button
               onClick={() => setSourcingMode('maroc')}
-              className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${
+              className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
                 sourcingMode === 'maroc'
                   ? 'bg-or text-noir shadow-sm'
                   : 'text-gray-500 hover:text-noir'
@@ -41,7 +68,7 @@ export default function SourcingModule({ segment, config }) {
             </button>
             <button
               onClick={() => setSourcingMode('export')}
-              className={`px-4 py-1.5 text-xs font-medium rounded-full transition-colors ${
+              className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
                 sourcingMode === 'export'
                   ? 'bg-or text-noir shadow-sm'
                   : 'text-gray-500 hover:text-noir'
@@ -59,7 +86,7 @@ export default function SourcingModule({ segment, config }) {
       {/* Fournisseurs by category */}
       <div className="divide-y divide-gray-50">
         {relevantCategories.map((cat) => {
-          const liste = getFournisseurs(cat, sourcingMode)
+          const liste = sortByCertification(getFournisseurs(cat, sourcingMode))
           if (liste.length === 0) return null
 
           return (
@@ -69,20 +96,39 @@ export default function SourcingModule({ segment, config }) {
               </p>
               <div className="space-y-3">
                 {liste.map((f) => (
-                  <FournisseurCard key={f.id} fournisseur={f} />
+                  <FournisseurCard key={f.id} fournisseur={f} sourcingMode={sourcingMode} />
                 ))}
               </div>
             </div>
           )
         })}
       </div>
+
+      {/* Summary footer */}
+      {totalFournisseurs > 0 && (
+        <div className="px-5 py-3 border-t border-border bg-blanc-warm">
+          <p className="text-xs text-gray-500">
+            <span className="font-medium text-noir">{totalFournisseurs}</span> fournisseur{totalFournisseurs > 1 ? 's' : ''} disponibles
+            {prixMax > 0 && (
+              <span> — Budget matière estimé : <span className="font-medium text-noir">{prixMin}–{prixMax} MAD</span></span>
+            )}
+          </p>
+        </div>
+      )}
     </motion.div>
   )
 }
 
-function FournisseurCard({ fournisseur: f }) {
+function FournisseurCard({ fournisseur: f, sourcingMode }) {
   const prix = f.prix_mad_m2 || f.prix_mad_paire || f.prix_mad_unite
   const unite = f.prix_mad_m2 ? '/m²' : f.prix_mad_paire ? '/paire' : '/unité'
+
+  // Delivery estimate: local = direct, international = +7 days transit
+  const isLocal = f.pays === 'Maroc'
+  const deliveryDays = isLocal ? f.delai_jours : f.delai_jours + 7
+  const deliveryLabel = isLocal
+    ? `${f.delai_jours}j délai`
+    : `${deliveryDays}j (${f.delai_jours}j + 7j transit)`
 
   return (
     <div className="bg-blanc-warm rounded-lg p-3 text-sm border border-border">
@@ -96,10 +142,18 @@ function FournisseurCard({ fournisseur: f }) {
 
       <div className="grid grid-cols-2 gap-2 mt-3">
         <DataPill icon={MapPin} label={`${f.ville}, ${f.pays}`} />
-        <DataPill icon={Clock} label={`${f.delai_jours}j délai`} />
+        <DataPill icon={Clock} label={deliveryLabel} />
         {prix && <DataPill icon={Package} label={`${prix.min}–${prix.max} MAD${unite}`} />}
         <DataPill icon={Package} label={`MOQ: ${f.moq} ${f.moq_unite}`} />
       </div>
+
+      {/* Delivery to Maroc estimate */}
+      {!isLocal && (
+        <div className="flex items-center gap-1.5 mt-2 text-xs text-gray-400">
+          <Truck size={11} />
+          <span>Délai estimé livraison Maroc : {deliveryDays} jours</span>
+        </div>
+      )}
 
       {f.certification && f.certification.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
