@@ -22,7 +22,7 @@ const segments = {
       epaisseur_tige_max_mm: 0.8,
       epaisseur_semelle_max_mm: 5,
       flexibilite: 'très haute',
-      fermetures: ['scratch', 'élastique', 'velcro'],
+      fermetures: ['scratch', 'élastique', 'velcro', 'bouton-pression'],
       fermetures_interdites: ['zip', 'lacets'],
       doublure_obligatoire: true,
       doublure_oeko_tex_obligatoire: true,
@@ -131,7 +131,7 @@ const segments = {
       doublure: ['chevreau', 'agneau', 'microfibre', 'chevre_naturelle', 'lin_naturel'],
       semelle: ['tr', 'tpu', 'eva', 'cuir_semelle', 'pu_semelle', 'plateforme_liege', 'pu_bi_densite'],
     },
-    montages_recommandes: ['colle', 'cousu_blake', 'injection', 'ago', 'strobel'],
+    montages_recommandes: ['colle', 'cousu_blake', 'cousu_goodyear', 'injection', 'ago', 'strobel'],
     normes_obligatoires: ['REACH', 'ISO 20344'],
     tests_requis: [
       'Résistance flexion > 40 000 cycles',
@@ -179,7 +179,7 @@ const segments = {
       bout_dur: true,
     },
     materiaux_recommandes: {
-      tige: ['vachette', 'chevreau', 'veau', 'nubuck', 'pu', 'mesh', 'toile', 'box_calf', 'cordovan', 'cuir_gras', 'cuir_cire', 'cuir_perfore', 'cuir_waterproof', 'canvas', 'knit'],
+      tige: ['vachette', 'chevreau', 'veau', 'nubuck', 'pu', 'mesh', 'toile', 'box_calf', 'cordovan', 'cuir_gras', 'cuir_perfore', 'cuir_waterproof', 'canvas', 'knit'],
       doublure: ['veau', 'chevreau', 'microfibre', 'chevre_naturelle', 'veau_velours'],
       semelle: ['tr', 'tpu', 'eva', 'cuir_semelle', 'pu_semelle', 'caoutchouc', 'vibram', 'pu_bi_densite'],
     },
