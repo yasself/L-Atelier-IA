@@ -608,6 +608,37 @@ export const reglesParSegment = {
 }
 
 /**
+ * INTENTION_MAP — mapping mots-clés utilisateur vers spécifications
+ * confidence >= 0.80 → sortie statique, zéro token API
+ * confidence < 0.80 → escalade Claude API dans enrichmentService
+ */
+export const INTENTION_MAP = {
+  // --- STYLES ---
+  mocassin: { semelle: 'cuir_semelle', montage: 'ago', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.92 },
+  loafer: { semelle: 'cuir_semelle', montage: 'ago', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.92 },
+  derby: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'vachette', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.95 },
+  richelieu: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.95 },
+  oxford: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.95 },
+  chelsea: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.93 },
+  bottine: { semelle: 'tr', montage: 'cousu_blake', material: 'vachette', finition: 'cire', doublure: 'microfibre_respirante', confidence: 0.88 },
+  botte: { semelle: 'caoutchouc', montage: 'colle', material: 'vachette', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85 },
+  escarpin: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.90 },
+  ballerine: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'cire', doublure: 'microfibre_respirante', confidence: 0.88 },
+  sandale: { semelle: 'eva', montage: 'colle', material: 'vachette', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.85 },
+  sneaker: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.92 },
+  basket: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.90 },
+  trail: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.88 },
+  randonnee: { semelle: 'vibram', montage: 'norwegian_welt', material: 'cuir_gras', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85 },
+  chausson: { semelle: 'eva', montage: 'cousu_strobel', material: 'agneau', finition: 'naturel', doublure: 'textile_coton_bio', confidence: 0.92 },
+  pantoufle: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'naturel', doublure: 'fourrure_synthetique', confidence: 0.85 },
+  mule: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.82 },
+  monk: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'box_calf', finition: 'cire', doublure: 'veau_velours', confidence: 0.90 },
+  brogue: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cuir_perfore', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.93 },
+  desert_boot: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'nubuck', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.88 },
+  chukka: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.85 },
+}
+
+/**
  * Retourne les matériaux valides pour un segment donné
  */
 export function getMateriauxParSegment(segment) {
