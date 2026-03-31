@@ -653,25 +653,25 @@ export const INTENTION_MAP = {
   botte_equitation: { semelle: 'caoutchouc', montage: 'cousu_blake', material: 'vachette', finition: 'cire', doublure: 'microfibre_respirante', confidence: 0.85, prompt_descriptor: 'riding boot, tall shaft, flat heel, equestrian style' },
   running: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.90, prompt_descriptor: 'running shoe, cushioned midsole, breathable upper, athletic' },
   // --- OCCASIONS ---
-  mariage: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.88 },
-  soiree: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.85 },
-  bureau: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.90 },
-  casual: { semelle: 'eva', montage: 'colle', material: 'nubuck', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.82 },
-  plage: { semelle: 'eva', montage: 'colle', material: 'toile', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.80 },
-  pluie: { semelle: 'caoutchouc', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.88 },
-  neige: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85 },
-  sport: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.90 },
-  grossesse: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.78 },
+  mariage: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.88, prompt_descriptor: 'wedding shoe, elegant dress shoe, high-gloss leather, formal occasion' },
+  soiree: { semelle: 'cuir_semelle', montage: 'colle', material: 'chevreau', finition: 'vernis', doublure: 'chevre_naturelle', confidence: 0.85, prompt_descriptor: 'evening shoe, formal party shoe, glossy leather, dressy silhouette' },
+  bureau: { semelle: 'cuir_semelle', montage: 'cousu_blake', material: 'veau', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.90, prompt_descriptor: 'office shoe, business professional, polished leather, conservative style' },
+  casual: { semelle: 'eva', montage: 'colle', material: 'nubuck', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.82, prompt_descriptor: 'casual everyday shoe, relaxed style, comfortable flat, versatile' },
+  plage: { semelle: 'eva', montage: 'colle', material: 'toile', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.80, prompt_descriptor: 'beach shoe, lightweight canvas, open airy design, summer footwear' },
+  pluie: { semelle: 'caoutchouc', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.88, prompt_descriptor: 'rain boot, waterproof shoe, rubber sole, wet weather protection' },
+  neige: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'laine_merinos', confidence: 0.85, prompt_descriptor: 'winter snow boot, insulated, waterproof, thick tread sole, warm lining' },
+  sport: { semelle: 'eva', montage: 'strobel', material: 'mesh', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.90, prompt_descriptor: 'sports shoe, athletic performance, cushioned sole, breathable mesh upper' },
+  grossesse: { semelle: 'eva', montage: 'colle', material: 'agneau', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.78, prompt_descriptor: 'maternity shoe, extra comfort, wide fit, soft leather, low heel, slip-on' },
   // --- SENSATIONS / QUALITÉS ---
-  confortable: { semelle: 'eva', montage: 'strobel', material: 'veau', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.82 },
-  leger: { semelle: 'eva', montage: 'strobel', material: 'knit', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.85 },
-  waterproof: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.90 },
-  vintage: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cuir_cire', finition: 'antique', doublure: 'chevre_naturelle', confidence: 0.85 },
-  minimaliste: { semelle: 'eva', montage: 'colle', material: 'veau', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.80 },
-  luxe: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cordovan', finition: 'cire', doublure: 'veau_velours', confidence: 0.92 },
-  artisanal: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'vachetta', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.88 },
-  vegan: { semelle: 'eva', montage: 'colle', material: 'microfibre', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.82 },
-  recycle: { semelle: 'eva', montage: 'colle', material: 'canvas', finition: 'naturel', doublure: 'cuir_vegetal_recycle', confidence: 0.78 },
+  confortable: { semelle: 'eva', montage: 'strobel', material: 'veau', finition: 'naturel', doublure: 'microfibre_respirante', confidence: 0.82, prompt_descriptor: 'comfort shoe, padded insole, ergonomic fit, soft upper, walking shoe' },
+  leger: { semelle: 'eva', montage: 'strobel', material: 'knit', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.85, prompt_descriptor: 'lightweight shoe, minimal weight, knit upper, flexible sole, airy construction' },
+  waterproof: { semelle: 'vibram', montage: 'injection', material: 'cuir_waterproof', finition: 'hydrofuge', doublure: 'microfibre_respirante', confidence: 0.90, prompt_descriptor: 'waterproof shoe, DWR treated leather, sealed seams, wet weather resistant' },
+  vintage: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cuir_cire', finition: 'antique', doublure: 'chevre_naturelle', confidence: 0.85, prompt_descriptor: 'vintage retro shoe, aged wax leather, antique patina, classic silhouette' },
+  minimaliste: { semelle: 'eva', montage: 'colle', material: 'veau', finition: 'naturel', doublure: 'sans_doublure', confidence: 0.80, prompt_descriptor: 'minimalist shoe, clean lines, no decoration, sleek modern silhouette' },
+  luxe: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'cordovan', finition: 'cire', doublure: 'veau_velours', confidence: 0.92, prompt_descriptor: 'luxury premium shoe, shell cordovan leather, Goodyear welt, high-end craftsmanship' },
+  artisanal: { semelle: 'cuir_semelle', montage: 'cousu_goodyear', material: 'vachetta', finition: 'cire', doublure: 'chevre_naturelle', confidence: 0.88, prompt_descriptor: 'handcrafted artisan shoe, hand-stitched, natural leather, bespoke shoemaking' },
+  vegan: { semelle: 'eva', montage: 'colle', material: 'microfibre', finition: 'neutre', doublure: 'microfibre_respirante', confidence: 0.82, prompt_descriptor: 'vegan shoe, animal-free materials, microfibre upper, eco-conscious design' },
+  recycle: { semelle: 'eva', montage: 'colle', material: 'canvas', finition: 'naturel', doublure: 'cuir_vegetal_recycle', confidence: 0.78, prompt_descriptor: 'recycled material shoe, sustainable canvas, eco-friendly construction, upcycled components' },
 }
 
 /**
@@ -764,6 +764,12 @@ export function getLabelFr(id) {
   if (semelles.types[id]) return semelles.types[id].label
   // Doublures
   if (typeof doublures !== 'undefined' && doublures[id]) return doublures[id].label
+  // Renforts
+  if (typeof renforts !== 'undefined' && renforts[id]) return renforts[id].label
+  // Fermetures
+  if (typeof fermetures !== 'undefined' && fermetures[id]) return fermetures[id].label
+  // Ornements
+  if (typeof ornements !== 'undefined' && ornements[id]) return ornements[id].label
   // Fallback: capitalize id
   return id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
