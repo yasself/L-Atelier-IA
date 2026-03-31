@@ -137,8 +137,8 @@ export default function TechnicalCard({ segment, config, enrichment }) {
           <DataRow icon={Footprints} label="Semelle" value={getLabelFr(config.semelle_type) || '—'} />
           <DataRow icon={Wrench} label="Montage" value={LABEL_MONTAGE[config.montage] || getLabelFr(config.montage) || '—'} />
           <DataRow icon={Sparkles} label="Finitions" value={config.finitions || 'Non spécifiée'} />
-          <DataRow icon={Heart} label="Doublure" value={(segConfig.materiaux_recommandes?.doublure || []).map(d => getLabelFr(d) || d).join(', ') || '—'} />
-          <DataRow label="Fermetures" value={contraintes.fermetures.join(', ')} />
+          <DataRow icon={Heart} label="Doublure" value={getLabelFr(enrichment?.data?.doublure_recommandee) || 'Non spécifiée'} />
+          <DataRow label="Fermeture" value={config.fermeture ? getLabelFr(config.fermeture) : 'Non spécifiée'} />
         </Section>
 
         {/* Constraint checklist */}
