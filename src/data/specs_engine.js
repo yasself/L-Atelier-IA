@@ -238,7 +238,7 @@ export const semelles = {
       densite: { min: 1.0, max: 1.3 },
       durete_shore: { min: 55, max: 75, echelle: 'A' },
       usure_din: { max: 100, unite: 'mm³' },
-      segments: ['enfant', 'homme'],
+      segments: ['enfant', 'femme', 'homme'],
     },
     vibram: {
       label: 'Vibram (premium outdoor)',
@@ -592,8 +592,8 @@ export const reglesParSegment = {
     flexibilite_min: 'moyenne',
     substances_interdites: ['chrome VI > 3mg/kg'],
     normes: ['REACH', 'ISO 20344'],
-    montages_autorises: ['colle', 'cousu_blake', 'injection'],
-    semelles_autorisees: ['tr', 'tpu', 'eva', 'cuir_semelle', 'pu_semelle'],
+    montages_autorises: ['colle', 'cousu_blake', 'injection', 'strobel', 'ago'],
+    semelles_autorisees: ['tr', 'tpu', 'eva', 'cuir_semelle', 'pu_semelle', 'caoutchouc', 'vibram'],
   },
   homme: {
     epaisseur_tige_max: 1.8,
@@ -602,8 +602,8 @@ export const reglesParSegment = {
     flexibilite_min: 'moyenne',
     substances_interdites: ['chrome VI > 3mg/kg'],
     normes: ['REACH', 'ISO 20344', 'ISO 20345'],
-    montages_autorises: ['colle', 'cousu_blake', 'cousu_goodyear', 'injection', 'vulcanise'],
-    semelles_autorisees: ['tr', 'tpu', 'eva', 'cuir_semelle', 'pu_semelle', 'caoutchouc'],
+    montages_autorises: ['colle', 'cousu_blake', 'cousu_goodyear', 'injection', 'vulcanise', 'strobel', 'ago', 'norwegian_welt'],
+    semelles_autorisees: ['tr', 'tpu', 'eva', 'cuir_semelle', 'pu_semelle', 'caoutchouc', 'vibram', 'pu_bi_densite', 'texon'],
   },
 }
 
