@@ -1,7 +1,8 @@
 {
   "name": "l-atelier-ia",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "author": "yasself",
   "type": "module",
   "scripts": {
     "dev": "vite",

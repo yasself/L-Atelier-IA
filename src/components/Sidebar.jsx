@@ -166,7 +166,7 @@ export default function Sidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-noir-lighter">
-          <p className="text-xs text-gray-500 text-center">v1.0 — Phase 1</p>
+          <p className="text-xs text-gray-500 text-center">v1.0 — © yasself</p>
         </div>
       </motion.aside>
 
