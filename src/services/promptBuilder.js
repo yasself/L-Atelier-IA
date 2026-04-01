@@ -112,10 +112,18 @@ const COULEUR_EN = {
 
 // --- Fermeture FR → EN ---
 const FERMETURE_EN = {
-  lacets: 'lace-up', velcro: 'velcro closure', scratch: 'velcro closure',
-  zip: 'side zip', 'zip intérieur': 'inner zip', boucle: 'buckle strap',
-  bride: 'ankle strap', 'élastique': 'elastic gusset', 'monk strap': 'monk strap buckle',
-  'bouton-pression': 'snap button closure', 'sans fermeture': 'slip-on no laces',
+  lacets: 'lace-up',
+  velcro: 'velcro closure',
+  scratch: 'scratch velcro strap',
+  zip: 'side zip closure',
+  'zip intérieur': 'hidden inner zip',
+  boucle: 'single buckle monk strap, no laces',
+  bride: 'ankle strap',
+  'élastique': 'elastic side panel',
+  elastique: 'elastic side panel',
+  'monk strap': 'monk strap double buckle',
+  'bouton-pression': 'snap button closure',
+  'sans fermeture': 'slip-on no laces',
 }
 
 // --- Hauteur talon → EN descriptif ---
@@ -149,9 +157,9 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
   const hauteurTalon = config.hauteur_talon || ''
   const fermeture = config.fermeture || ''
 
-  // Translate fields to English
-  const couleurEN = COULEUR_EN[couleur] || couleur || ''
-  const fermetureEN = FERMETURE_EN[fermeture] || fermeture || ''
+  // Translate fields to English — only include if translation exists
+  const couleurEN = COULEUR_EN[couleur] || ''
+  const fermetureEN = FERMETURE_EN[fermeture] || ''
   const talonEN = TALON_EN[hauteurTalon] || ''
   const segmentEN = SEGMENT_EN[segment] || segment
 
