@@ -98,11 +98,16 @@ export default function Generator() {
   }
 
   const handleSave = () => {
+    const store = useAtelierStore.getState()
+    const mainView = (store.renderResults || []).find(r => r.view_id === 'three_quarter' && r.status === 'success')
     save({
       config: { ...config, segment },
       enrichment: currentSpecs,
       prompt: currentPrompt,
-      sourcingMode: useAtelierStore.getState().sourcingMode,
+      sourcingMode: store.sourcingMode,
+      renderResults: store.renderResults || [],
+      thumbnailUrl: mainView?.imageUrl || null,
+      imagesExpireAt: new Date(Date.now() + 3600000).toISOString(),
     })
     setSaved(true)
   }

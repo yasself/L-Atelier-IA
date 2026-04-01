@@ -12,6 +12,9 @@ export default function useHistory() {
     setCurrentSpecs,
     setCurrentPrompt,
     setSourcingMode,
+    setRenderResults,
+    setRenderStatus,
+    resetRenders,
   } = useAtelierStore()
 
   // Load history from localStorage on mount
@@ -48,7 +51,16 @@ export default function useHistory() {
     if (entry.enrichment) setCurrentSpecs(entry.enrichment)
     if (entry.prompt) setCurrentPrompt(entry.prompt)
     if (entry.sourcingMode) setSourcingMode(entry.sourcingMode)
-  }, [setSegment, setConfig, setCurrentSpecs, setCurrentPrompt, setSourcingMode])
+
+    // Restore render results if images not expired
+    const expired = entry.imagesExpireAt && new Date(entry.imagesExpireAt) < new Date()
+    if (!expired && entry.renderResults?.length > 0) {
+      setRenderResults(entry.renderResults)
+      setRenderStatus('complete')
+    } else {
+      resetRenders()
+    }
+  }, [setSegment, setConfig, setCurrentSpecs, setCurrentPrompt, setSourcingMode, setRenderResults, setRenderStatus, resetRenders])
 
   return { history, save, remove, clearAll, getRecent, loadEntry }
 }

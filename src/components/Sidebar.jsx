@@ -131,34 +131,46 @@ export default function Sidebar() {
               <ul
                 className={`space-y-1 ${history.length > 5 ? 'max-h-52 overflow-y-auto pr-1' : ''}`}
               >
-                {history.map((entry) => (
-                  <li
-                    key={entry.id}
-                    className="group flex items-start gap-2 px-3 py-2 rounded-lg hover:bg-noir-lighter transition-colors cursor-pointer"
-                    onClick={() => loadEntry(entry)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-300 truncate">
-                        <span className="text-or/70 font-medium">
-                          {entry.config?.segment || ''}
-                        </span>
-                        {entry.config?.segment ? ' · ' : ''}
-                        {entryLabel(entry)}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-0.5">
-                        {relativeTime(entry.createdAt)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); remove(entry.id) }}
-                      className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400 mt-0.5"
-                      title="Supprimer"
-                      aria-label="Supprimer cette entrée"
+                {history.map((entry) => {
+                  const expired = entry.imagesExpireAt && new Date(entry.imagesExpireAt) < new Date()
+                  return (
+                    <li
+                      key={entry.id}
+                      className="group flex items-start gap-2 px-3 py-2 rounded-lg hover:bg-noir-lighter transition-colors cursor-pointer"
+                      onClick={() => loadEntry(entry)}
                     >
-                      <Trash2 size={12} />
-                    </button>
-                  </li>
-                ))}
+                      {/* Thumbnail */}
+                      {entry.thumbnailUrl && !expired ? (
+                        <img src={entry.thumbnailUrl} alt="" className="w-8 h-8 rounded object-cover shrink-0 mt-0.5" />
+                      ) : (
+                        <div className="w-8 h-8 rounded bg-noir-lighter flex items-center justify-center shrink-0 mt-0.5">
+                          <Footprints size={12} className="text-gray-500" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-300 truncate">
+                          <span className="text-or/70 font-medium">
+                            {entry.config?.segment || ''}
+                          </span>
+                          {entry.config?.segment ? ' · ' : ''}
+                          {entryLabel(entry)}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          {relativeTime(entry.createdAt)}
+                          {expired && <span className="ml-1 text-orange-400">· Images expirées</span>}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); remove(entry.id) }}
+                        className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400 mt-0.5"
+                        title="Supprimer"
+                        aria-label="Supprimer cette entrée"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             </>
           )}
