@@ -31,6 +31,10 @@ const MATERIAU_TEXTURE = {
   denim: 'denim fabric, diagonal twill weave with indigo-dyed character',
   knit: 'engineered knit upper, seamless technical textile with sock-like fit',
   toile_enduite: 'coated canvas, waterproof sealed woven textile with smooth finish',
+  nappa_vegetal: 'vegetable-tanned nappa leather, ultra-soft chrome-free surface with natural warmth',
+  chevreau_vegetal: 'vegetable-tanned goat leather, soft fine grain chrome-free with gentle patina',
+  coton_bio: 'organic cotton fabric, soft breathable natural weave, baby-safe',
+  textile_technique: 'technical textile, engineered breathable fabric with stretch',
 }
 
 // --- Descriptions techniques des montages ---

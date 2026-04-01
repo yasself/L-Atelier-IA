@@ -32,11 +32,11 @@ const segments = {
       semelle_antiderapante_obligatoire: true,
     },
     materiaux_recommandes: {
-      tige: ['agneau', 'microfibre', 'mesh', 'pu', 'knit'],
+      tige: ['agneau', 'nappa_vegetal', 'chevreau_vegetal', 'microfibre', 'mesh', 'coton_bio', 'textile_technique', 'pu', 'knit'],
       doublure: ['agneau', 'microfibre', 'textile_coton_bio'],
-      semelle: ['eva', 'orthopedique'],
+      semelle: ['eva', 'gomme_recyclee', 'orthopedique'],
     },
-    montages_recommandes: ['cousu_strobel', 'colle'],
+    montages_recommandes: ['cousu_strobel', 'colle', 'cousu_retourne', 'opanka', 'soude_souple'],
     normes_obligatoires: ['EN 71-3', 'REACH Annexe XVII', 'OEKO-TEX Standard 100'],
     tests_requis: [
       'Migration métaux lourds',
