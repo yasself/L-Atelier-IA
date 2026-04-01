@@ -109,16 +109,16 @@ describe('promptBuilder', () => {
       }
     })
 
-    it('should include segment in silhouette layer', () => {
+    it('should include segment in context line', () => {
       const result = buildViewPrompts(mockSpecs)
       const main = result.find(v => v.view_id === 'three_quarter')
-      expect(main.positive).toContain("women's footwear")
+      expect(main.positive).toContain("women's")
     })
 
-    it('should include color when provided', () => {
+    it('should translate color to English', () => {
       const result = buildViewPrompts(mockSpecs)
       const main = result.find(v => v.view_id === 'three_quarter')
-      expect(main.positive).toContain('noir')
+      expect(main.positive).toContain('black')
     })
 
     it('each view should have flux_optimized field', () => {

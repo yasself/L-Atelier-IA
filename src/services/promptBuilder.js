@@ -93,10 +93,39 @@ const NEGATIVE_PROMPT = 'cartoon, illustration, sketch, 3D render, CGI, plastic 
 
 // --- Segment labels for English prompt ---
 const SEGMENT_EN = {
-  bebe: "baby's",
+  bebe: "baby infant",
   enfant: "children's",
   femme: "women's",
   homme: "men's",
+}
+
+// --- Couleur FR → EN ---
+const COULEUR_EN = {
+  noir: 'black', blanc: 'white', beige: 'beige', camel: 'camel',
+  cognac: 'cognac brown', bordeaux: 'burgundy', marine: 'navy blue',
+  kaki: 'khaki', taupe: 'taupe', gris: 'grey', rouge: 'red',
+  'rose poudré': 'powder pink', nude: 'nude', or: 'gold', argent: 'silver',
+  bronze: 'bronze', 'vert kaki': 'olive green', 'bleu royal': 'royal blue',
+  violet: 'purple', marron: 'brown', terracotta: 'terracotta', corail: 'coral',
+  multicolore: 'multicolor', bicolore: 'two-tone', tan: 'tan',
+}
+
+// --- Fermeture FR → EN ---
+const FERMETURE_EN = {
+  lacets: 'lace-up', velcro: 'velcro closure', scratch: 'velcro closure',
+  zip: 'side zip', 'zip intérieur': 'inner zip', boucle: 'buckle strap',
+  bride: 'ankle strap', 'élastique': 'elastic gusset', 'monk strap': 'monk strap buckle',
+  'bouton-pression': 'snap button closure', 'sans fermeture': 'slip-on no laces',
+}
+
+// --- Hauteur talon → EN descriptif ---
+const TALON_EN = {
+  plat: 'flat sole no heel',
+  bas: 'low heel 2-3cm',
+  mi_haut: 'mid heel 4-6cm',
+  haut: 'high heel 7-9cm',
+  tres_haut: 'very high heel 10-12cm',
+  aiguille: 'stiletto needle-thin heel 10cm+',
 }
 
 /**
@@ -120,13 +149,27 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
   const hauteurTalon = config.hauteur_talon || ''
   const fermeture = config.fermeture || ''
 
+  // Translate fields to English
+  const couleurEN = COULEUR_EN[couleur] || couleur || ''
+  const fermetureEN = FERMETURE_EN[fermeture] || fermeture || ''
+  const talonEN = TALON_EN[hauteurTalon] || ''
+  const segmentEN = SEGMENT_EN[segment] || segment
+
   // Lookup prompt_descriptor from INTENTION_MAP
   const intentionMatch = INTENTION_MAP[type] || data.intention
   const promptDescriptor = intentionMatch?.prompt_descriptor || null
 
-  // Build the 6 layers
-  const layer1 = buildSilhouetteLayer(type, segment, promptDescriptor, hauteurTalon)
-  const layer2 = buildMaterialLayer(materiau, couleur)
+  // MANDATORY CONTEXT LINE — first element of every prompt
+  const contextParts = [
+    `${segmentEN} ${promptDescriptor || type || 'shoe'}`,
+    couleurEN ? `${couleurEN} color` : null,
+    fermetureEN || null,
+    talonEN || null,
+  ].filter(Boolean)
+  const contextLine = contextParts.join(', ')
+
+  // Build the 6 layers (context line replaces old layer1)
+  const layer2 = buildMaterialLayer(materiau, couleurEN)
   const layer3 = buildConstructionLayer(montage)
   const layer6 = QUALITY_LAYER
 
@@ -135,10 +178,9 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
     const layer4 = viewCfg.lighting
     const layer5 = viewCfg.include_macro ? MACRO_DETAILS : ''
 
-    const layers = [layer1, layer2, layer3, layer4, layer5, layer6].filter(Boolean)
+    const layers = [contextLine, layer2, layer3, layer4, layer5, layer6].filter(Boolean)
     if (finitions) layers.splice(3, 0, `${finitions} finish`)
     if (style) layers.splice(1, 0, `${style} style`)
-    if (fermeture) layers.splice(3, 0, `${fermeture} closure`)
 
     const positive = layers.join(', ')
 
@@ -166,9 +208,9 @@ function buildSilhouetteLayer(type, segment, promptDescriptor, hauteurTalon) {
   return `${shoeType} shoe${heelStr}, ${segLabel} footwear`
 }
 
-function buildMaterialLayer(materiau, couleur) {
+function buildMaterialLayer(materiau, couleurEN) {
   const texture = MATERIAU_TEXTURE[materiau] || materiau || 'leather'
-  const colorStr = couleur ? `${couleur} ` : ''
+  const colorStr = couleurEN ? `${couleurEN} ` : ''
   return `crafted in ${colorStr}${texture}`
 }
 
