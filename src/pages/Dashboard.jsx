@@ -15,6 +15,67 @@ const INPUT_MODES = [
   { id: 'pdf', label: 'Fiche PDF', icon: FileText },
 ]
 
+const SEGMENT_EMOJI = {
+  bebe: '👶',
+  enfant: '👦',
+  femme: '👠',
+  homme: '👞',
+}
+
+function getSessionEmoji(segment) {
+  return SEGMENT_EMOJI[segment] || '📋'
+}
+
+function SessionTabs() {
+  const { sessions, activeSessionId, addSession, removeSession, setActiveSession } = useAtelierStore()
+
+  return (
+    <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+      {sessions.map((session) => {
+        const isActive = session.id === activeSessionId
+        return (
+          <button
+            key={session.id}
+            onClick={() => setActiveSession(session.id)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0 border ${
+              isActive
+                ? 'bg-noir text-or border-noir shadow-sm'
+                : 'bg-blanc text-gray-500 border-gray-200 hover:border-gray-300 hover:text-noir'
+            }`}
+          >
+            <span>{getSessionEmoji(session.segment)}</span>
+            <span>{session.config?.type_chaussure || session.label}</span>
+            {session.isGenerating && (
+              <span className="animate-pulse text-or ml-0.5">●</span>
+            )}
+            {sessions.length > 1 && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); removeSession(session.id) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); removeSession(session.id) } }}
+                className={`ml-0.5 leading-none rounded hover:text-red-500 transition-colors ${isActive ? 'text-or/70' : 'text-gray-400'}`}
+                aria-label="Fermer l'onglet"
+              >
+                ×
+              </span>
+            )}
+          </button>
+        )
+      })}
+      {sessions.length < 6 && (
+        <button
+          onClick={addSession}
+          className="px-2.5 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-noir hover:bg-blanc border border-dashed border-gray-300 hover:border-gray-400 transition-all duration-200 shrink-0"
+          aria-label="Nouveau projet"
+        >
+          +
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { activeView, inputMode, setInputMode } = useAtelierStore()
 
@@ -27,6 +88,9 @@ export default function Dashboard() {
           {activeView === 'history' && <HistoryView />}
           {activeView === 'generator' && (
             <>
+              {/* Session tabs */}
+              <SessionTabs />
+
               {/* Setup guard */}
               {!configService.hasValidConfig() && (
                 <motion.div
