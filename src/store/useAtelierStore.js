@@ -72,7 +72,7 @@ const useAtelierStore = create((set, get) => ({
       const updatedSessions = state.sessions.map((s) =>
         s.id === state.activeSessionId ? { ...s, ...currentFlat } : s
       )
-      const newId = `session_${Date.now()}`
+      const newId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
       const newLabel = `Projet ${updatedSessions.length + 1}`
       const newSession = makeSession(newId, newLabel)
       return {
@@ -293,35 +293,28 @@ const useAtelierStore = create((set, get) => ({
   setVisionResult: (result) =>
     set((state) => updateActiveSession(state, { visionResult: result })),
 
-  // Reset all (resets active session + flat state)
+  // Reset all (resets everything including sessions)
   reset: () =>
-    set((state) => {
-      const resetData = {
-        segment: 'femme',
-        config: { ...DEFAULT_CONFIG },
-        enrichmentResult: null,
-        currentSpecs: null,
-        generatedPrompt: null,
-        currentPrompt: null,
-        renderResults: [],
-        renderStatus: 'idle',
-        totalRenderCost: 0,
-        prixEstime: null,
-        visionResult: null,
-        isGenerating: false,
-      }
-      const sessions = state.sessions.map((s) =>
-        s.id === state.activeSessionId ? { ...s, ...resetData } : s
-      )
-      return {
-        sessions,
-        ...resetData,
-        loading: false,
-        sourcingMode: 'maroc',
-        activeView: 'generator',
-        inputMode: 'text',
-      }
-    }),
+    set(() => ({
+      sessions: [makeSession('session_1', 'Projet 1')],
+      activeSessionId: 'session_1',
+      segment: 'femme',
+      config: { ...DEFAULT_CONFIG },
+      enrichmentResult: null,
+      currentSpecs: null,
+      generatedPrompt: null,
+      currentPrompt: null,
+      renderResults: [],
+      renderStatus: 'idle',
+      totalRenderCost: 0,
+      prixEstime: null,
+      visionResult: null,
+      isGenerating: false,
+      loading: false,
+      sourcingMode: 'maroc',
+      activeView: 'generator',
+      inputMode: 'text',
+    })),
 }))
 
 export default useAtelierStore
