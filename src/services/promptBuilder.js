@@ -178,6 +178,14 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
     fermetureEN || null,
     talonEN || null,
   ].filter(Boolean)
+
+  // Segment-specific safety terms
+  if (segment === 'bebe') {
+    contextParts.push('flat sole no heel', 'soft flexible non-slip sole', 'baby-safe materials', 'no hard edges, rounded soft shapes')
+  } else if (segment === 'enfant') {
+    contextParts.push('non-slip durable sole', 'abrasion-resistant', 'child ergonomic fit')
+  }
+
   const contextLine = contextParts.join(', ')
 
   // Build the 6 layers (context line replaces old layer1)

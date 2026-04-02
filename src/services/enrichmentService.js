@@ -16,6 +16,8 @@ import segments from '../data/segments'
 export async function enrichirProduit(input) {
   const resultatStatique = lookupStatique(input)
 
+  resultatStatique.data = validateSegmentConstraints(resultatStatique.data, input.segment)
+
   if (resultatStatique.confiance >= 80) {
     return {
       data: resultatStatique.data,
@@ -195,6 +197,33 @@ Réponds UNIQUEMENT en JSON avec les champs manquants:
   "points_attention": ["..."],
   "estimation_cout_production_mad": { "min": 0, "max": 0 }
 }`
+}
+
+/**
+ * Valide et corrige les données selon les contraintes du segment
+ */
+function validateSegmentConstraints(data, segment) {
+  if (segment === 'bebe') {
+    // Force zero heel
+    if (data.intention?.heel_height) data.intention.heel_height = 0
+    // Replace chrome materials with nappa_vegetal
+    if (data.materiau_principal && ['cuir_cire', 'cuir_gras', 'cordovan'].includes(data.materiau_principal)) {
+      data.materiau_principal = 'nappa_vegetal'
+    }
+    // Replace forbidden montages
+    if (data.montage_recommande && ['cousu_blake', 'cousu_goodyear'].includes(data.montage_recommande)) {
+      data.montage_recommande = 'cousu_retourne'
+    }
+  }
+  if (segment === 'enfant') {
+    // Replace goodyear with blake
+    if (data.montage_recommande === 'cousu_goodyear') {
+      data.montage_recommande = 'cousu_blake'
+    }
+    // Cap heel at 20mm
+    if (data.intention?.heel_height > 20) data.intention.heel_height = 20
+  }
+  return data
 }
 
 /**
