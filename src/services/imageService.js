@@ -156,6 +156,7 @@ async function generateWithDalle(prompt, options = {}) {
  */
 export async function generateAllViews(viewPrompts, options = {}) {
   const onResult = options.onResult || (() => {})
+  const sessionId = options.sessionId || null
   const engine = configService.getBestEngine()
 
   // Flux Pro: sequential with 3s delay between views to avoid rate limiting
@@ -163,7 +164,7 @@ export async function generateAllViews(viewPrompts, options = {}) {
     const results = []
     for (const vp of viewPrompts) {
       const result = await generateSingleView(vp, options)
-      onResult(result)
+      onResult(result, sessionId)
       results.push(result)
       // 3s delay between Flux calls (skip after last)
       if (vp !== viewPrompts[viewPrompts.length - 1]) {
@@ -176,7 +177,7 @@ export async function generateAllViews(viewPrompts, options = {}) {
   // DALL-E 3: parallel via Promise.allSettled
   const tasks = viewPrompts.map((vp) =>
     generateSingleView(vp, options).then((result) => {
-      onResult(result)
+      onResult(result, sessionId)
       return result
     })
   )
