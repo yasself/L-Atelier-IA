@@ -212,7 +212,7 @@ const segments = {
 }
 
 export const TYPES_CHAUSSURES = {
-  bebe: ['Chausson', 'Bottillon', 'Sandale', 'Basket souple', 'Babouche'],
+  bebe: ['Chausson', 'Bottillon', 'Sandale', 'Basket souple', 'Babouche', 'Premiers pas', 'Bottine bébé', 'Chausson tricot'],
   enfant: ['Basket', 'Sandale', 'Bottine', 'Derby', 'Ballerine', 'Botte', 'Sneaker', 'Mary Jane', 'Running'],
   femme: ['Escarpin', 'Bottine', 'Sandale', 'Sneaker', 'Derby', 'Mocassin', 'Ballerine', 'Botte', 'Mule', 'Botte haute', 'Cuissarde', 'Sandale compensée', 'Plateforme', 'Mary Jane', 'Slingback', 'Peep toe', 'Gladiateur', 'Espadrille', 'Sabot', 'Tong', 'Loafer', 'Chelsea'],
   homme: ['Derby', 'Richelieu', 'Mocassin', 'Sneaker', 'Bottine', 'Chelsea', 'Monk', 'Botte', 'Brogue', 'Chukka', 'Desert boot', 'Loafer', 'Running', 'Trail', 'Randonnée', 'Boot cowboy', 'Botte équitation', 'Espadrille', 'Pantoufle'],
