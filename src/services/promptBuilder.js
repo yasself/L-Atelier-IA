@@ -118,7 +118,7 @@ const COULEUR_EN = {
 const FERMETURE_EN = {
   lacets: 'lace-up',
   velcro: 'velcro closure',
-  scratch: 'scratch velcro strap',
+  scratch: 'scratch velcro strap, no laces',
   zip: 'side zip closure',
   'zip intérieur': 'hidden inner zip',
   boucle: 'single buckle monk strap, no laces',
@@ -168,7 +168,9 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
   const segmentEN = SEGMENT_EN[segment] || segment
 
   // Lookup prompt_descriptor from INTENTION_MAP
-  const intentionMatch = INTENTION_MAP[type] || data.intention
+  // Try exact match first, then normalized (spaces→underscores, accents removed)
+  const typeNormalized = type.replace(/\s+/g, '_').replace(/[éèê]/g, 'e').replace(/[àâ]/g, 'a')
+  const intentionMatch = INTENTION_MAP[type] || INTENTION_MAP[typeNormalized] || data.intention
   const promptDescriptor = intentionMatch?.prompt_descriptor || null
 
   // MANDATORY CONTEXT LINE — first element of every prompt
@@ -179,11 +181,11 @@ export function buildViewPrompts(specs, sourcingMode = 'maroc') {
     talonEN || null,
   ].filter(Boolean)
 
-  // Segment-specific safety terms
+  // Segment-specific safety terms — force proportions and safety
   if (segment === 'bebe') {
-    contextParts.push('flat sole no heel', 'soft flexible non-slip sole', 'baby-safe materials', 'no hard edges, rounded soft shapes')
+    contextParts.push('infant baby proportions', 'chubby rounded shape', 'soft padded upper', 'no hard edges', 'baby-sized scale', 'flat sole no heel', 'soft flexible non-slip sole', 'baby-safe materials')
   } else if (segment === 'enfant') {
-    contextParts.push('non-slip durable sole', 'abrasion-resistant', 'child ergonomic fit')
+    contextParts.push('non-slip durable sole', 'abrasion-resistant', 'child ergonomic fit', 'child proportions')
   }
 
   const contextLine = contextParts.join(', ')
